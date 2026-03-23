@@ -1,0 +1,17 @@
+fastapi_project/
+│
+├── venv/
+├── app/
+│   ├── main.py
+│   │
+│   ├── database/
+│   │   └── db.py
+│   │
+│   ├── models/
+│   │   └── user.py
+│   │
+│   └── routes/
+│       └── user.py
+│
+├── requirements.txt
+└── .env
