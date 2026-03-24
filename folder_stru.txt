@@ -15,3 +15,7 @@ fastapi_project/
 │
 ├── requirements.txt
 └── .env
+|--- templates(pip install --upgrade fastapi starlette jinja2)
+
+
+

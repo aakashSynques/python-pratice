@@ -1,0 +1,42 @@
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Home</title>
+</head>
+<body>
+
+<h1>Index Page Working </h1>
+<a href="/about">About</a>
+
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Customers</title>
+    </head>
+    <body>
+        <h1>Customers List</h1>
+        <ul id="customer-list"></ul>
+
+        <script>
+    // API call to /customers/
+    fetch("/customers/")
+        .then(response => response.json())
+        .then(data => {
+            const ul = document.getElementById("customer-list");
+
+            // data array me loop
+            data.forEach(customer => {
+                const li = document.createElement("li");
+                li.textContent = `${customer.name} (${customer.shop_name}) - ${customer.email} - ${customer.mobile}`;
+                ul.appendChild(li);
+            });
+        })
+        .catch(error => {
+            console.error("Error fetching customers:", error);
+        });
+    </script>
+    </body>
+</html>

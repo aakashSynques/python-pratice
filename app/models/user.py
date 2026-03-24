@@ -1,3 +1,6 @@
+# Model database table ko represent karta hai. (Model kya karta hai (Database ka Structure))
+
+
 from sqlalchemy import Column, Integer, String, Text, DateTime, SmallInteger
 from datetime import datetime
 from app.database.db import Base
