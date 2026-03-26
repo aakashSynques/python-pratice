@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.database.db import get_db
-
+from app.models.master_users import MasterUser
 from app.models.master_leads import MasterLead
 from app.models.master_client_model import MasterClient
 
@@ -11,6 +11,7 @@ from app.schemas.client_schema import (
     ClientResponse,
     ClientUpdate
 )
+from app.auth import get_current_user
 
 router = APIRouter(
     prefix="/clients",
@@ -25,7 +26,8 @@ router = APIRouter(
 @router.post("/convert/{lead_id}")
 def convert_lead_to_client(
     lead_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     # Check Lead exists
@@ -91,7 +93,8 @@ def convert_lead_to_client(
     response_model=List[ClientResponse]
 )
 def get_clients(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     clients = db.query(
@@ -111,7 +114,8 @@ def get_clients(
 )
 def get_client(
     client_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     client = db.query(
@@ -140,7 +144,8 @@ def get_client(
 def update_client(
     client_id: int,
     client_data: ClientUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     client = db.query(

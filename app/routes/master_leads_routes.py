@@ -3,11 +3,13 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database.db import get_db
 from app.models.master_leads import MasterLead
+from app.models.master_users import MasterUser
 from app.schemas.leads_schemas import (
     LeadCreate,
     LeadUpdate,
     LeadResponse
 )
+from app.auth import get_current_user
 
 router = APIRouter(
     prefix="/leads",
@@ -20,7 +22,8 @@ router = APIRouter(
 @router.post("/create-leads", response_model=LeadResponse)
 def create_lead(
     lead: LeadCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     new_lead = MasterLead(
@@ -45,7 +48,8 @@ def create_lead(
 # ===============================
 @router.get("/all-leads", response_model=List[LeadResponse])
 def get_all_leads(
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     leads = db.query(MasterLead).filter(
@@ -61,7 +65,8 @@ def get_all_leads(
 @router.get("/{lead_id}", response_model=LeadResponse)
 def get_lead(
     lead_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     lead = db.query(MasterLead).filter(
@@ -85,7 +90,8 @@ def get_lead(
 def update_lead(
     lead_id: int,
     lead_update: LeadUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     lead = db.query(MasterLead).filter(
@@ -116,7 +122,8 @@ def update_lead(
 @router.delete("/{lead_id}")
 def delete_lead(
     lead_id: int,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     lead = db.query(MasterLead).filter(

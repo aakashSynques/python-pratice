@@ -12,6 +12,7 @@ from app.schemas.lead_demo_schemas import (
     DemoFeedbackUpdate,
     DemoResponse
 )
+from app.auth import get_current_user
 
 router = APIRouter(
     prefix="/leads",
@@ -29,7 +30,8 @@ router = APIRouter(
 def schedule_demo(
     lead_id: int,
     demo: ScheduleDemoCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     # Check Lead exists
@@ -84,7 +86,8 @@ def schedule_demo(
 def update_demo_feedback(
     demo_id: int,
     feedback_data: DemoFeedbackUpdate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
 
     # Check Demo exists

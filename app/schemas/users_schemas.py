@@ -18,7 +18,6 @@ class UserResponse(BaseModel):
     mobile: str
     address: Optional[str]
     role_id: int    
-    password: str
     status: int
     created_at: datetime
     updated_at: datetime

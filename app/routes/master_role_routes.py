@@ -3,13 +3,16 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database.db import get_db
 from app.models.master_role import MasterRole
+from app.models.master_users import MasterUser
 from app.schemas.role_schemas import (RoleCreate, RoleResponse)
+from app.auth import get_current_user
 router = APIRouter(    prefix="/roles",    tags=["Master Roles"])
 # Create Role
 @router.post("/create", response_model=RoleResponse)
 def create_role(
     role: RoleCreate,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
 ):
     existing_role = db.query(MasterRole).filter(
         MasterRole.role_name == role.role_name
@@ -29,7 +32,7 @@ def create_role(
     return new_role
 # Get All Roles
 @router.get("/all")
-def get_roles(db: Session = Depends(get_db)):
+def get_roles(db: Session = Depends(get_db), current_user: MasterUser = Depends(get_current_user)):
     roles = db.query(MasterRole).all()
 
     for r in roles:
