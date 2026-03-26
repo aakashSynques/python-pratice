@@ -9,7 +9,7 @@ alias deactivate 'test $?_OLD_VIRTUAL_PATH != 0 && setenv PATH "$_OLD_VIRTUAL_PA
 # Unset irrelevant variables.
 deactivate nondestructive
 
-setenv VIRTUAL_ENV '/media/aakash/a2c8bf4d-5de8-407c-9195-402ada663aaa/aakash/python project fast api/fastapi_project/venv'
+setenv VIRTUAL_ENV '/media/aakash/a2c8bf4d-5de8-407c-9195-402ada663aaa/aakash/python project fast api/chai_etc/venv'
 
 set _OLD_VIRTUAL_PATH="$PATH"
 setenv PATH "$VIRTUAL_ENV/"bin":$PATH"

@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/media/aakash/a2c8bf4d-5de8-407c-9195-402ada663aaa/aakash/python project fast api/fastapi_project/venv/bin/python3" "$0" "$@"
+'''exec' "/media/aakash/a2c8bf4d-5de8-407c-9195-402ada663aaa/aakash/python project fast api/chai_etc/venv/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re

@@ -28,9 +28,16 @@ class CustomerResponse(BaseModel):
     email: str
     mobile: str
     address: Optional[str]
+    password: str
     status: int
     created_at: datetime
     updated_at: datetime
 
     class Config:
         from_attributes = True
+
+
+#  Login Schema (NEW)
+class CustomerLogin(BaseModel):
+    email: EmailStr
+    password: str

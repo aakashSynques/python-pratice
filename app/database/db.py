@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 DB_USER = "root"
 DB_PASSWORD = ""
 DB_HOST = "localhost"
-DB_NAME = "test-db"
+DB_NAME = "chai-etc"
 
 DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 

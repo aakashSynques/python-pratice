@@ -1,0 +1,450 @@
+Act as a senior backend architect and build a **production-ready, scalable backend API** using FastAPI and MySQL for a **Tea Vending Machine ERP System**.
+
+Follow industry best practices, modular architecture, reusable components, and clean coding standards.
+
+Focus only on Backend API and Database.
+
+---
+
+TECH STACK:
+
+Backend Framework: FastAPI
+Database: MySQL
+ORM: SQLAlchemy
+Schema Validation: Pydantic
+Authentication: JWT-based authentication
+Password Hashing: bcrypt
+Email Service: SMTP
+Background Tasks: FastAPI BackgroundTasks
+Migrations: Alembic
+Logging: Python logging module
+Environment Variables: .env
+Pagination: Limit/Offset
+Soft Delete: is_active field
+
+---
+
+NAMING CONVENTION (VERY IMPORTANT):
+
+All master tables must start with:
+
+master_
+
+Examples:
+
+master_roles
+master_users
+master_leads
+master_clients
+master_items
+master_machines
+master_suppliers
+
+Transaction tables must NOT use master_ prefix.
+
+Every table must include:
+
+id (Primary Key)
+created_at (DateTime)
+updated_at (DateTime)
+is_active (Boolean default=True)
+
+---
+
+BUSINESS DOMAIN:
+
+This ERP system is used by a Tea Vending Machine company.
+
+The company installs tea vending machines at client locations.
+
+Machines consume raw materials:
+
+Tea Powder
+Milk Powder
+Sugar
+Cups
+
+Machines produce:
+
+Tea Cups
+
+Clients are billed monthly based on tea consumption.
+
+Machines also require:
+
+Maintenance
+Repair
+Service
+
+Suppliers provide:
+
+Raw materials
+Machine parts
+
+---
+
+CORE MASTER MODULES:
+
+1. Role Management
+
+Table:
+
+master_roles
+
+Fields:
+
+id
+role_name
+description
+
+Default Roles:
+
+Admin
+Sales
+Technician
+Accounts
+Store
+
+---
+
+2. User Management
+
+Table:
+
+master_users
+
+Fields:
+
+id
+name
+email
+password_hash
+role_id (FK → master_roles.id)
+
+---
+
+3. Lead Management
+
+Tables:
+
+master_leads
+lead_demo_schedule
+
+Features:
+
+Create Lead
+Update Lead
+Schedule Demo
+Assign Employee
+Store Demo Feedback
+Convert Lead to Client
+
+APIs:
+
+POST /leads
+GET /leads
+GET /leads/{id}
+PUT /leads/{id}
+POST /leads/{id}/schedule-demo
+POST /leads/{id}/convert-client
+
+---
+
+4. Client Management
+
+Tables:
+
+master_clients
+Features:
+
+Create Client
+Manage Locations
+GST Details
+Contact Details
+
+APIs:
+
+POST /clients
+GET /clients
+GET /clients/{id}
+PUT /clients/{id}
+
+---
+
+5. Employee Management
+
+Table:
+
+master_employees
+
+Fields:
+
+name
+role_id
+mobile
+email
+
+---
+
+6. Machine Management
+
+Tables:
+
+master_machines
+machine_installations
+
+Features:
+
+Register Machine
+Assign to Client Location
+OTP-based Installation Confirmation
+
+APIs:
+
+POST /machines
+GET /machines
+POST /machines/install
+POST /machines/confirm-otp
+
+---
+
+7. Item (Raw Material) Module
+
+Tables:
+
+master_items
+item_stock
+
+Items:
+
+Tea Powder
+Milk Powder
+Sugar
+Cups
+
+Features:
+
+Add Item
+Update Item
+Stock Tracking
+
+---
+
+8. Supplier Module
+
+Table:
+
+master_suppliers
+
+Features:
+
+Supplier Management
+
+---
+
+TRANSACTION MODULES:
+
+9. Purchase Module
+
+Tables:
+
+purchase_orders
+purchase_order_items
+goods_received
+supplier_invoices
+supplier_payments
+
+Features:
+
+Purchase Planning
+Generate PO
+Receive Items
+Supplier Invoice
+Payment to Supplier
+
+---
+
+10. Machine Consumption Module
+
+Tables:
+
+machine_consumption
+consumption_items
+
+Features:
+
+Daily Consumption Entry
+Material Usage Tracking
+Monthly Summary
+
+---
+
+11. Billing Module
+
+Tables:
+
+invoices
+invoice_items
+gst_details
+
+Features:
+
+Monthly Billing
+Minimum Billing Logic
+GST Calculation
+Breakage Billing
+Scrap Billing
+
+---
+
+12. Payment Module
+
+Tables:
+
+client_payments
+tds_records
+debit_notes
+
+Features:
+
+Client Payment Tracking
+TDS Deduction
+Debit Notes
+
+---
+
+13. Service & Ticket Module
+
+Tables:
+
+service_tickets
+ticket_parts
+service_history
+
+Features:
+
+Complaint Registration
+Technician Assignment
+Service Tracking
+Parts Usage
+
+---
+
+AUTHENTICATION MODULE:
+
+Implement:
+
+POST /auth/login
+
+Use:
+
+Email
+Password
+
+Return:
+
+JWT access_token
+
+Add:
+
+Role-based access control
+Password hashing using bcrypt
+
+---
+
+BASE MODEL (IMPORTANT):
+
+Create reusable BaseModel with:
+
+id
+created_at
+updated_at
+is_active
+
+All models must inherit this.
+
+---
+
+PROJECT STRUCTURE:
+
+app/
+│
+├── main.py
+│
+├── core/
+│   ├── config.py
+│   ├── security.py
+│   ├── dependencies.py
+│
+├── database/
+│   ├── base.py
+│   ├── session.py
+│   ├── init_db.py
+│
+├── models/
+│   ├── master/
+│   ├── transaction/
+│
+├── schemas/
+│   ├── master/
+│   ├── transaction/
+│
+├── crud/
+│   ├── base.py
+│   ├── master/
+│   ├── transaction/
+│
+├── routers/
+│   ├── master/
+│   ├── transaction/
+│
+├── services/
+│   ├── email_service.py
+│   ├── otp_service.py
+│   ├── invoice_service.py
+│
+├── utils/
+│   ├── pagination.py
+│   ├── helpers.py
+│
+├── middleware/
+│
+├── logs/
+│
+tests/
+alembic/
+.env
+requirements.txt
+
+---
+
+ADDITIONAL REQUIREMENTS:
+
+Use SQLAlchemy relationships
+Use Dependency Injection
+Use reusable CRUD base class
+Add Pagination
+Add Filtering
+Add Logging
+Use Alembic migrations
+Use Environment Variables
+Use Background Tasks for Email/OTP
+Use Soft Delete
+Use Exception Handling
+
+---
+
+EXPECTED OUTPUT:
+
+Generate:
+
+Full FastAPI Project
+SQLAlchemy Models
+Pydantic Schemas
+CRUD Layer
+Routers
+Authentication
+JWT
+Database Integration
+Swagger Documentation
+Ready-to-run backend code

@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV '/media/aakash/a2c8bf4d-5de8-407c-9195-402ada663aaa/aakash/python project fast api/fastapi_project/venv'
+set -gx VIRTUAL_ENV '/media/aakash/a2c8bf4d-5de8-407c-9195-402ada663aaa/aakash/python project fast api/chai_etc/venv'
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH

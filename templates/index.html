@@ -26,7 +26,6 @@
         .then(response => response.json())
         .then(data => {
             const ul = document.getElementById("customer-list");
-
             // data array me loop
             data.forEach(customer => {
                 const li = document.createElement("li");
