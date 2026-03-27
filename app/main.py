@@ -29,6 +29,9 @@ from app.routes import master_role_routes
 from app.routes import master_leads_routes
 from app.routes import lead_shedule_demo_routes
 from app.routes import master_client_routes
+from app.routes import master_machine_and_part_routes
+from app.routes import work_orders_routes
+
 from app.database.db import Base, engine
 # FastAPI instance
 app = FastAPI(title="Tea Vending ERP API", version="1.0")
@@ -38,6 +41,9 @@ app.include_router(master_role_routes.router)
 app.include_router(master_leads_routes.router)
 app.include_router(lead_shedule_demo_routes.router)
 app.include_router(master_client_routes.router)
+app.include_router(master_machine_and_part_routes.router)
+app.include_router(work_orders_routes.router)
+
 
 
 
