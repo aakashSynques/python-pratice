@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Add Machine - Tea Vending ERP{% endblock %}
+
+{% block page_title %}Add New Machine{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-cogs me-2"></i>Add New Machine</h5>
+            </div>
+            <div class="card-body">
+                <form id="addMachineForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="machineName" class="form-label">Machine Name *</label>
+                            <input type="text" class="form-control" id="machineName" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="machineType" class="form-label">Machine Type *</label>
+                            <select class="form-control" id="machineType" required>
+                                <option value="">Select Type</option>
+                                <option value="vending_machine">Vending Machine</option>
+                                <option value="coffee_machine">Coffee Machine</option>
+                                <option value="snack_machine">Snack Machine</option>
+                                <option value="beverage_machine">Beverage Machine</option>
+                                <option value="water_dispenser">Water Dispenser</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="model" class="form-label">Model</label>
+                            <input type="text" class="form-control" id="model">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="serialNumber" class="form-label">Serial Number</label>
+                            <input type="text" class="form-control" id="serialNumber">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">Status *</label>
+                            <select class="form-control" id="status" required>
+                                <option value="">Select Status</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                                <option value="maintenance">Maintenance</option>
+                                <option value="out_of_order">Out of Order</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" placeholder="e.g., Office Floor 1">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="purchaseDate" class="form-label">Purchase Date</label>
+                            <input type="date" class="form-control" id="purchaseDate">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="warrantyExpiry" class="form-label">Warranty Expiry</label>
+                            <input type="date" class="form-control" id="warrantyExpiry">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" rows="3" placeholder="Additional notes about the machine"></textarea>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/machines" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save me-1"></i>Save Machine
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('addMachineForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = {
+            machine_name: document.getElementById('machineName').value,
+            machine_type: document.getElementById('machineType').value,
+            model: document.getElementById('model').value,
+            serial_number: document.getElementById('serialNumber').value,
+            status: document.getElementById('status').value,
+            location: document.getElementById('location').value,
+            purchase_date: document.getElementById('purchaseDate').value || null,
+            warranty_expiry: document.getElementById('warrantyExpiry').value || null,
+            notes: document.getElementById('notes').value
+        };
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+
+        try {
+            const response = await fetch('/machines/add-machines', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                alert('Machine created successfully!');
+                window.location.href = '/machines';
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Failed to create machine');
+            }
+        } catch (error) {
+            console.error('Error creating machine:', error);
+            alert('Failed to create machine');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Save Machine';
+        }
+    });
+
+    window.onload = function() {
+        // Authentication is handled by base template
+    };
+</script>
+{% endblock %}

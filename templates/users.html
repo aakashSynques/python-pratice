@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+{% block title %}Users - Tea Vending ERP{% endblock %}
+{% block page_title %}User Management{% endblock %}
+{% block content %}
+<div class="card-header">
+    <div class="row">
+        <div class="col-md-6">
+            <h5 class="mb-0">Application Users</h5>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-sm-4">
+        <div class="card" style="box-shadow:0px 0px 4px 1px #e7e7e7;">
+            <div class="card-body">
+                <h6>Add New User</h6>
+                <div id="createErrorMsg" class="alert alert-danger d-none">
+                </div>
+                <input id="userName" class="form-control mb-2" placeholder="Name">
+                <input id="userEmail" class="form-control mb-2" placeholder="Email">
+                <input id="userMobile" class="form-control mb-2" placeholder="Mobile">
+                <input id="userAddress" class="form-control mb-2" placeholder="Address">
+                <input id="userPassword" type="password" class="form-control mb-2" placeholder="Password">
+                <select id="userRole" class="form-control mb-2"> </select>
+                <select id="userStatus" class="form-control mb-2">
+                    <option value="1"> Active </option>
+                    <option value="0"> Inactive </option>
+                </select>
+                <button onclick="createUser()" class="btn btn-success bg-color mt-2 w-100"> Create User</button>
+            </div>
+        </div>
+    </div>
+    <!-- ================= USERS TABLE ================= -->
+     <div class="col-sm-8" style="border-left:1px solid #dbdbdb;">
+        <div class="card" style="box-shadow:0px 0px 4px 1px #e7e7e7;">
+            <div class="card-body">
+                <h6>Users List</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Mobile</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th width="120">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ================= EDIT MODAL ================= -->
+<div class="modal fade" id="editUserModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5>Edit User</h5>
+                <button class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="editErrorMsg" class="alert alert-danger d-none">
+                </div>
+                <input type="hidden" id="editUserId">
+                <input id="editUserName" class="form-control mb-2" placeholder="Name">
+                <input id="editUserEmail" class="form-control mb-2" placeholder="Email">
+                <input id="editUserMobile" class="form-control mb-2" placeholder="Mobile">
+                <input id="editUserAddress" class="form-control mb-2" placeholder="Address">
+                <select id="editUserRole" class="form-control mb-2">
+                </select>
+                <select id="editUserStatus" class="form-control mb-2">
+                    <option value="1">Active </option>
+                    <option value="0">Inactive</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success bg-color mt-2 w-100" onclick="updateUser()"> Update</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    let usersData = [];
+    let rolesData = [];
+    /* ================= LOAD ROLES ================= */
+    async function loadRoles() {
+        const res = await fetch('/roles/all', {
+            headers: getAuthHeaders()
+        });
+        rolesData = await res.json();
+        populateRoles();
+    }
+    /* ================= POPULATE ROLE ================= */
+    function populateRoles() {
+        let roleSelect = document.getElementById('userRole');
+        let editRoleSelect = document.getElementById('editUserRole');
+        roleSelect.innerHTML = "";
+        editRoleSelect.innerHTML = "";
+        rolesData.forEach(role => {
+            roleSelect.innerHTML += `<option value="${role.role_id}">${role.role_name}</option>`;
+            editRoleSelect.innerHTML += `<option value="${role.role_id}">${role.role_name}</option>`;
+        });
+    }
+    /* ================= LOAD USERS ================= */
+    async function loadUsers() {
+        const res =
+            await fetch('/users/all', {
+                headers: getAuthHeaders()
+            });
+        usersData = await res.json();
+        renderUsers();
+    }
+    /* ================= RENDER USERS ================= */
+    function renderUsers() {
+        let tbody =
+            document.getElementById(
+                'usersTableBody'
+            );
+        tbody.innerHTML = "";
+        usersData.forEach(user => {
+            let role =
+                rolesData.find(
+                    r => r.role_id === user.role_id
+                );
+            let statusBadge =
+                user.status == 1
+                    ? '<span class="badge bg-success">Active</span>'
+                    : '<span class="badge bg-danger">Inactive</span>';
+            tbody.innerHTML += `
+                <tr>
+                    <td>${user.id}</td>
+                    <td>${user.name}</td>
+                    <td>${user.email}</td>
+                    <td>${user.mobile}</td>
+                    <td>${role ? role.role_name : ''}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                    <button class="btn btn-sm btn-outline-primary p-0 px-2"   onclick="openEditModal(${user.id})"> <i class="fas fa-edit"></i> </button>
+                    <button class="btn btn-sm btn-outline-danger p-0 px-2"  onclick="deleteUser(${user.id})"> <i class="fas fa-trash"></i> </button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+    /* ================= CREATE USER ================= */
+    async function createUser() {
+        const errorBox = document.getElementById('createErrorMsg');
+        errorBox.classList.add('d-none');
+        const data = {
+            name: document.getElementById('userName').value,
+            email: document.getElementById('userEmail').value,
+            mobile: document.getElementById('userMobile').value,
+            address: document.getElementById('userAddress').value,
+            password: document.getElementById('userPassword').value,
+            role_id: parseInt(document.getElementById('userRole').value),
+            status: parseInt(document.getElementById('userStatus').value)
+        };
+        try {
+            const res = await fetch('/users/create', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify(data)
+            });
+            if (res.ok) {
+                clearCreateForm();
+                loadUsers();
+            }
+            else {
+                let err = await res.json();
+                showError(
+                    errorBox,
+                    err.detail || "Create failed"
+                );
+            }
+        }
+        catch (e) {
+            showError(errorBox, "Server error");
+        }
+    }
+
+    /* ================= CLEAR FORM ================= */
+    function clearCreateForm() {
+        document.getElementById('userName').value = "";
+        document.getElementById('userEmail').value = "";
+        document.getElementById('userMobile').value = "";
+        document.getElementById('userAddress').value = "";
+        document.getElementById('userPassword').value = "";
+        document.getElementById('userRole').selectedIndex = 0;
+        document.getElementById('userStatus').value = 1;
+    }
+
+    /* ================= OPEN EDIT ================= */
+    function openEditModal(id) {
+        let user = usersData.find(u => u.id === id);
+        document.getElementById('editUserId').value = user.id;
+        document.getElementById('editUserName').value = user.name;
+        document.getElementById('editUserEmail').value = user.email;
+        document.getElementById('editUserMobile').value = user.mobile;
+        document.getElementById('editUserAddress').value = user.address;
+        document.getElementById('editUserRole').value = user.role_id;
+        document.getElementById('editUserStatus').value = user.status;
+        new bootstrap.Modal(document.getElementById('editUserModal')).show();
+    }
+    /* ================= UPDATE USER ================= */
+    async function updateUser() {
+        const id = document.getElementById('editUserId').value;
+        const data = {
+            name: document.getElementById('editUserName').value,
+            email: document.getElementById('editUserEmail').value,
+            mobile: document.getElementById('editUserMobile').value,
+            address: document.getElementById('editUserAddress').value,
+            role_id: parseInt(document.getElementById('editUserRole').value),
+            status: parseInt(document.getElementById('editUserStatus').value)
+        };
+
+        await fetch(`/users/update/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                ...getAuthHeaders()
+            },
+            body: JSON.stringify(data)
+        }
+        );
+        bootstrap.Modal
+            .getInstance(
+                document.getElementById(
+                    'editUserModal'
+                )
+            )
+            .hide();
+        loadUsers();
+    }
+    /* ================= DELETE USER ================= */
+    async function deleteUser(id) {
+        if (!confirm("Delete user?")) return; 
+        await fetch(`/users/delete/${id}`, {
+                method: "DELETE",
+                headers: getAuthHeaders()
+            }
+        );
+        loadUsers();
+    }
+    /* ================= ERROR ================= */
+    function showError(el, msg) {
+        el.innerText = msg;
+        el.classList.remove('d-none');
+    }
+    /* ================= INIT ================= */
+    window.onload = async function () {
+        await loadRoles();
+        await loadUsers();
+    };
+</script>
+{% endblock %}

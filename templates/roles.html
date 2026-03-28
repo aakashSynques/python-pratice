@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% block title %}Role - Tea Vending ERP{% endblock %}
+{% block page_title %}Role Management{% endblock %}
+{% block content %}
+<div class="card-header">
+    <div class="row">
+        <div class="col-md-6">
+            <h5 class="mb-0">User Roles</h5>
+        </div>
+    </div>
+</div>
+<div class="row mt-3">
+    <div class="col-sm-4">
+        <div class="card" style="box-shadow:0px 0px 4px 1px #e7e7e7;">
+            <div class="card-body">
+                <h6>Add New Role</h6>
+                <div id="createErrorMsg" class="alert alert-danger d-none">
+                </div>
+                <input id="roleName" class="form-control" placeholder="Enter Role Name" type="text">
+                <select id="roleStatus" class="form-control mt-2">
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
+                </select>
+                <button onclick="createRole()" class="btn btn-success bg-color mt-2 w-100">
+                    Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= Role List ================= -->
+
+    <div class="col-sm-8" style="border-left:1px solid #dbdbdb;">
+        <div class="card" style="box-shadow:0px 0px 4px 1px #e7e7e7;">
+            <div class="card-body">
+                <h6>Roles</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered  align-middle" id="rolesTable">
+                        <thead class="table-secondary">
+                            <tr>
+                                <th>ID</th>
+                                <th>Role Name</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rolesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ================= Edit Modal ================= -->
+<div class="modal fade" id="editRoleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Edit Role
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="editErrorMsg" class="alert alert-danger d-none">
+                </div>
+                <input type="hidden" id="editRoleId">
+                <label>Role Name</label>
+                <input type="text" id="editRoleName" class="form-control">
+                <label class="mt-2">
+                    Status
+                </label>
+                <select id="editRoleStatus" class="form-control">
+                    <option value="1">Active</option>
+                    <option value="0">Inactive</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal"> Cancel </button>
+                <button class="btn btn-primary" onclick="updateRole()"> Update Role </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    let rolesData = [];
+    async function loadRoles() {
+        try {
+            const response = await fetch('/roles/all', {
+                headers: getAuthHeaders()
+            });
+            if (response.ok) {
+                rolesData = await response.json();
+                renderRolesTable();
+            }
+            else {
+                alert("Failed to load roles");
+            }
+        }
+        catch (error) {
+            alert("Server error");
+        }
+    }
+    /* ================= Render Table ================= */
+    function renderRolesTable() {
+        const tbody =
+            document.getElementById(
+                'rolesTableBody'
+            );
+        tbody.innerHTML = "";
+        rolesData.forEach(role => {
+            const statusBadge =
+                role.status == 1
+                    ? '<span class="badge bg-success">Active</span>'
+                    : '<span class="badge bg-danger">Inactive</span>';
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                    <td>${role.role_id}</td>
+                    <td>${role.role_name}</td>
+                    <td>${statusBadge}</td>
+                    <td>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary p-0 px-2" onclick="openEditModal(${role.role_id})">
+                            <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger p-0 px-2"  onclick="deleteRole(${role.role_id})">
+                            <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+            tbody.appendChild(row);
+        });
+    }
+    /* ================= Create Role ================= */
+    async function createRole() {
+        const roleName = document.getElementById('roleName').value;
+        const roleStatus = document.getElementById('roleStatus').value;
+        const errorBox = document.getElementById('createErrorMsg');
+        errorBox.classList.add('d-none');
+        if (!roleName) {
+            showError(
+                errorBox,
+                "Role name required"
+            );
+            return;
+        }
+        try {
+            const response = await fetch('/roles/create', {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify({
+                    role_name: roleName,
+                    status: parseInt(roleStatus)
+                })
+            });
+            if (response.ok) {
+                document.getElementById('roleName').value = "";
+                loadRoles();
+            }
+            else {
+                const error = await response.json();
+                showError(
+                    errorBox,
+                    error.detail || "Create failed"
+                );
+            }
+        }
+        catch (error) {
+            showError(
+                errorBox,
+                "Server error"
+            );
+        }
+    }
+
+    /* ================= Open Edit Modal ================= */
+    function openEditModal(id) {
+        const role =
+            rolesData.find(
+                r => r.role_id === id
+            );
+        document.getElementById('editRoleId').value = role.role_id;
+        document.getElementById('editRoleName').value = role.role_name;
+        document.getElementById('editRoleStatus').value = role.status;
+        document.getElementById('editErrorMsg').classList.add('d-none');
+        const modal = new bootstrap.Modal(document.getElementById('editRoleModal'));
+        modal.show();
+
+    }
+
+    /* ================= Update Role ================= */
+    async function updateRole() {
+        const roleId = document.getElementById('editRoleId').value;
+        const roleName = document.getElementById('editRoleName').value;
+        const roleStatus = document.getElementById('editRoleStatus').value;
+        const errorBox = document.getElementById('editErrorMsg');
+        errorBox.classList.add('d-none');
+        if (!roleName) {
+            showError(errorBox, "Role name required");
+            return;
+        }
+        try {
+            const response =
+                await fetch(`/roles/update/${roleId}`,
+                    {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            ...getAuthHeaders()
+                        },
+                        body: JSON.stringify({
+                            role_name: roleName,
+                            status: parseInt(roleStatus)
+                        })
+                    }
+                );
+            if (response.ok) {
+                bootstrap.Modal
+                    .getInstance(
+                        document.getElementById(
+                            'editRoleModal'
+                        )
+                    )
+                    .hide();
+                loadRoles();
+            }
+            else {
+                const error = await response.json();
+                showError(errorBox, error.detail || "Update failed");
+            }
+        }
+        catch (error) {
+            showError(errorBox, "Server error");
+        }
+
+    }
+
+    /* ================= Delete Role ================= */
+    async function deleteRole(id) {
+        if (!confirm("Delete this role?")) return;
+        try {
+            const response = await fetch(`/roles/delete/${id}`, {
+                method: "DELETE",
+                headers: getAuthHeaders()
+            }
+            );
+            if (response.ok) { loadRoles(); }
+            else { alert("Delete failed"); }
+        }
+        catch (error) { alert("Server error"); }
+    }
+    /* ================= Error UI ================= */
+    function showError(element, message) {
+        element.innerText = message;
+        element.classList.remove('d-none');
+    }
+    /* ================= Page Load ================= */
+    window.onload = function () { loadRoles(); };
+
+</script>
+
+{% endblock %}

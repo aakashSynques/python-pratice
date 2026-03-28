@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Add Lead - Tea Vending ERP{% endblock %}
+
+{% block page_title %}Add New Lead{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user-plus me-2"></i>Add New Lead</h5>
+            </div>
+            <div class="card-body">
+                <form id="addLeadForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Name *</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">Email *</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">Phone *</label>
+                            <input type="tel" class="form-control" id="phone" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="item_name" class="form-label">Item Name *</label>
+                            <input type="text" class="form-control" id="item_name" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="source" class="form-label">Source *</label>
+                            <select class="form-control" id="source" required>
+                                <option value="">Select Source</option>
+                                <option value="website">Website</option>
+                                <option value="referral">Referral</option>
+                                <option value="social_media">Social Media</option>
+                                <option value="advertisement">Advertisement</option>
+                                <option value="cold_call">Cold Call</option>
+                                <option value="trade_show">Trade Show</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <textarea class="form-control" id="address" rows="1"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/leads" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save me-1"></i>Save Lead
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const form = document.getElementById('addLeadForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = {
+            name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            phone: document.getElementById('phone').value,
+            item_name: document.getElementById('item_name').value,
+            source: document.getElementById('source').value,
+            address: document.getElementById('address').value
+        };
+
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+
+        try {
+            const response = await fetch('/leads/create-leads', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                alert('Lead created successfully!');
+                window.location.href = '/leads';
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Failed to create lead');
+            }
+        } catch (error) {
+            console.error('Error creating lead:', error);
+            alert('Failed to create lead');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Save Lead';
+        }
+    });
+
+    // Check authentication
+    window.onload = function() {
+        // Authentication is handled by base template
+    };
+</script>
+{% endblock %}

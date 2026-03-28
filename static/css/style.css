@@ -1,0 +1,195 @@
+       body {
+           font-family: 'Inter', sans-serif;
+           background: #f4f6f9;
+           overflow-x: hidden;
+           font-size: 15px!important;
+       }
+
+       .login-sec {
+           /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+           min-height: 100vh;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+       }
+
+       .bg-color {
+           background: #0f393b;
+           color: white;
+           font-size: 14px;
+       }
+       i{
+        font-size: 13px;
+       }
+
+       .login-card {
+           max-width: 400px;
+           width: 100%;
+           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+           border: none;
+       }
+
+       /* 
+       .card-header {
+           background: #0f393b;
+           color: white;
+           text-align: center;
+           padding: 22px 0px;
+       } */
+
+       .btn-login {
+           background: #0f393b;
+           border: none;
+           padding: 10px;
+           font-weight: bold;
+       }
+
+
+
+       .sidebar {
+           position: fixed;
+           top: 0;
+           left: 0;
+           width: 250px;
+           height: 100vh;
+           background: #1f2937;
+           transition: 0.3s;
+           z-index: 1000;
+       }
+
+       .sidebar.collapsed {
+           width: 70px;
+       }
+
+       .sidebar-brand {
+           height: 60px;
+           display: flex;
+           align-items: center;
+           justify-content: center;
+           color: white;
+           font-weight: 600;
+           font-size: 18px;
+           border-bottom: 1px solid #374151;
+       }
+
+       .sidebar .nav-link {
+         color: #cbd5e1;
+    padding: 4px 20px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    transition: 0.2s;
+       }
+
+       .sidebar .nav-link i {
+           width: 22px;
+       }
+
+       .sidebar .nav-link span {
+           margin-left: 10px;
+       }
+
+       /* collapsed text hide */
+       .sidebar.collapsed .nav-link span {
+           display: none;
+       }
+
+       .sidebar .nav-link:hover {
+           background: #374151;
+           color: white;
+       }
+
+       .sidebar .nav-link.active {
+           background: #0d6efd;
+           color: white;
+       }
+
+       /* section heading */
+       .sidebar-heading {
+           font-size: 12px;
+           color: #9ca3af;
+           padding: 10px 20px;
+           text-transform: uppercase;
+       }
+
+       .sidebar.collapsed .sidebar-heading {
+           display: none;
+       }
+
+       .navbar {
+           position: fixed;
+           left: 250px;
+           top: 0;
+           right: 0;
+           height: 60px;
+           background: #ffffff;
+           z-index: 9;
+           transition: 0.3s;
+           box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+       }
+
+       /* collapsed navbar */
+       .sidebar.collapsed+.navbar {
+           left: 70px;
+       }
+
+       /* toggle button */
+       .toggle-btn {
+           color: #000000;
+           font-size: 25px;
+           cursor: pointer;
+       }
+
+       .main-content {
+           margin-top: 57px;
+           margin-left: 245px;
+           padding: 21px;
+           transition: 0.3s;
+       }
+
+       .sidebar.collapsed~.main-content {
+           margin-left: 70px;
+       }
+
+       /* card */
+
+       .card {
+           /* border-radius: 10px; */
+           border: none;
+
+           box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+       }
+
+       @media (max-width: 768px) {
+           .sidebar {
+               left: -250px;
+           }
+
+           .sidebar.show {
+               left: 0;
+           }
+
+           .navbar {
+               left: 0;
+           }
+
+           .main-content {
+               margin-left: 0;
+           }
+
+       }
+
+
+       ::placeholder {
+  font-size: 14px; /* Set your desired font size */
+}
+
+/* Firefox < 19 (older versions) */
+:-moz-placeholder {
+  font-size: 14px;
+}
+
+/* Internet Explorer 10+ (older versions) */
+:-ms-input-placeholder {
+  font-size: 14px;
+}

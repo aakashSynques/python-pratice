@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Machines - Tea Vending ERP{% endblock %}
+
+{% block page_title %}Machine Management{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-md-6">
+        <h4>All Machines</h4>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="/machines/add" class="btn btn-primary">
+            <i class="fas fa-plus me-1"></i>Add Machine
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover" id="machinesTable">
+                <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Machine Name</th>
+                        <th>Machine Type</th>
+                        <th>Model</th>
+                        <th>Serial Number</th>
+                        <th>Status</th>
+                        <th>Location</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="machinesTableBody">
+                    <!-- Data will be loaded via JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let machinesData = [];
+
+    async function loadMachines() {
+        try {
+            const response = await fetch('/machines/', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                machinesData = await response.json();
+                renderMachinesTable();
+            } else {
+                handleApiError({ status: response.status, message: 'Failed to load machines' });
+            }
+        } catch (error) {
+            console.error('Error loading machines:', error);
+            alert('Failed to load machines');
+        }
+    }
+
+    function renderMachinesTable() {
+        const tbody = document.getElementById('machinesTableBody');
+        tbody.innerHTML = '';
+
+        machinesData.forEach(machine => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${machine.id}</td>
+                <td>${machine.machine_name}</td>
+                <td>${machine.machine_type}</td>
+                <td>${machine.model || '-'}</td>
+                <td>${machine.serial_number || '-'}</td>
+                <td>
+                    <span class="badge bg-${getStatusColor(machine.status)}">${machine.status}</span>
+                </td>
+                <td>${machine.location || '-'}</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button class="btn btn-sm btn-outline-primary" onclick="editMachine(${machine.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteMachine(${machine.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function getStatusColor(status) {
+        switch (status) {
+            case 'active': return 'success';
+            case 'inactive': return 'secondary';
+            case 'maintenance': return 'warning';
+            case 'out_of_order': return 'danger';
+            default: return 'secondary';
+        }
+    }
+
+    function editMachine(id) {
+        // For now, just alert. In a real app, you'd navigate to edit page
+        alert(`Edit machine ${id} - Feature coming soon`);
+    }
+
+    async function deleteMachine(id) {
+        if (confirm('Are you sure you want to delete this machine?')) {
+            try {
+                const response = await fetch(`/machines/${id}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+
+                if (response.ok) {
+                    alert('Machine deleted successfully');
+                    loadMachines();
+                } else {
+                    handleApiError({ status: response.status, message: 'Failed to delete machine' });
+                }
+            } catch (error) {
+                console.error('Error deleting machine:', error);
+                alert('Failed to delete machine');
+            }
+        }
+    }
+
+    // Load machines when page loads
+    window.onload = function() {
+        loadMachines();
+    };
+</script>
+{% endblock %}

@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Add Work Order - Tea Vending ERP{% endblock %}
+
+{% block page_title %}Add New Work Order{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-clipboard-list me-2"></i>Add New Work Order</h5>
+            </div>
+            <div class="card-body">
+                <form id="addWorkOrderForm">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="title" class="form-label">Title *</label>
+                            <input type="text" class="form-control" id="title" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="priority" class="form-label">Priority *</label>
+                            <select class="form-control" id="priority" required>
+                                <option value="">Select Priority</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" rows="3"></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="assignedTo" class="form-label">Assigned To</label>
+                            <select class="form-control" id="assignedTo">
+                                <option value="">Select Employee</option>
+                                <!-- Users will be loaded here -->
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="dueDate" class="form-label">Due Date</label>
+                            <input type="date" class="form-control" id="dueDate">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="clientId" class="form-label">Client</label>
+                            <select class="form-control" id="clientId">
+                                <option value="">Select Client</option>
+                                <!-- Clients will be loaded here -->
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="machineId" class="form-label">Machine</label>
+                            <select class="form-control" id="machineId">
+                                <option value="">Select Machine</option>
+                                <!-- Machines will be loaded here -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/work-orders" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save me-1"></i>Save Work Order
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let users = [];
+    let clients = [];
+    let machines = [];
+
+    async function loadUsers() {
+        try {
+            const response = await fetch('/users/all', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                users = await response.json();
+                populateUserSelect();
+            } else {
+                console.error('Failed to load users');
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+        }
+    }
+
+    async function loadClients() {
+        try {
+            const response = await fetch('/clients/', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                clients = await response.json();
+                populateClientSelect();
+            } else {
+                console.error('Failed to load clients');
+            }
+        } catch (error) {
+            console.error('Error loading clients:', error);
+        }
+    }
+
+    async function loadMachines() {
+        try {
+            const response = await fetch('/machines/', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                machines = await response.json();
+                populateMachineSelect();
+            } else {
+                console.error('Failed to load machines');
+            }
+        } catch (error) {
+            console.error('Error loading machines:', error);
+        }
+    }
+
+    function populateUserSelect() {
+        const select = document.getElementById('assignedTo');
+        users.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = `${user.name} (${user.email})`;
+            select.appendChild(option);
+        });
+    }
+
+    function populateClientSelect() {
+        const select = document.getElementById('clientId');
+        clients.forEach(client => {
+            const option = document.createElement('option');
+            option.value = client.id;
+            option.textContent = `${client.name} (${client.email})`;
+            select.appendChild(option);
+        });
+    }
+
+    function populateMachineSelect() {
+        const select = document.getElementById('machineId');
+        machines.forEach(machine => {
+            const option = document.createElement('option');
+            option.value = machine.id;
+            option.textContent = `${machine.machine_name} (${machine.machine_type})`;
+            select.appendChild(option);
+        });
+    }
+
+    const form = document.getElementById('addWorkOrderForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const formData = {
+            title: document.getElementById('title').value,
+            description: document.getElementById('description').value,
+            priority: document.getElementById('priority').value,
+            assigned_to: document.getElementById('assignedTo').value ? parseInt(document.getElementById('assignedTo').value) : null,
+            due_date: document.getElementById('dueDate').value || null,
+            client_id: document.getElementById('clientId').value ? parseInt(document.getElementById('clientId').value) : null,
+            machine_id: document.getElementById('machineId').value ? parseInt(document.getElementById('machineId').value) : null
+        };
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+
+        try {
+            const response = await fetch('/work-orders/', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                alert('Work order created successfully!');
+                window.location.href = '/work-orders';
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Failed to create work order');
+            }
+        } catch (error) {
+            console.error('Error creating work order:', error);
+            alert('Failed to create work order');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Save Work Order';
+        }
+    });
+
+    window.onload = function() {
+        loadUsers();
+        loadClients();
+        loadMachines();
+    };
+</script>
+{% endblock %}

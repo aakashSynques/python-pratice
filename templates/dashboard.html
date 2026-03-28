@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Tea Vending ERP{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-info" role="alert">
+            <h4 class="alert-heading">
+                <i class="fas fa-info-circle me-2"></i>Welcome to Tea Vending ERP!
+            </h4>
+            <p>Manage your leads, clients, work orders, and machines from this dashboard.</p>
+            <hr>
+            <p class="mb-0">Use the sidebar navigation to access different modules.</p>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">
+                            <i class="fas fa-users"></i> Leads
+                        </h5>
+                        <p class="card-text">Manage your sales leads</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+                <a href="/leads" class="btn btn-light btn-sm">View Leads</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">
+                            <i class="fas fa-building"></i> Clients
+                        </h5>
+                        <p class="card-text">View your clients</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-building fa-2x"></i>
+                    </div>
+                </div>
+                <a href="/clients" class="btn btn-light btn-sm">View Clients</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">
+                            <i class="fas fa-clipboard-list"></i> Work Orders
+                        </h5>
+                        <p class="card-text">Manage work orders</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clipboard-list fa-2x"></i>
+                    </div>
+                </div>
+                <a href="/work-orders" class="btn btn-light btn-sm">View Orders</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">
+                            <i class="fas fa-cogs"></i> Machines
+                        </h5>
+                        <p class="card-text">Manage machines</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-cogs fa-2x"></i>
+                    </div>
+                </div>
+                <a href="/machines" class="btn btn-light btn-sm">View Machines</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line me-2"></i>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="/leads/add" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i>Add New Lead
+                    </a>
+                    <a href="/work-orders/add" class="btn btn-outline-warning">
+                        <i class="fas fa-plus me-2"></i>Create Work Order
+                    </a>
+                    <a href="/machines/add" class="btn btn-outline-info">
+                        <i class="fas fa-plus me-2"></i>Add Machine
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-calendar-alt me-2"></i>Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Activity feed will be displayed here.</p>
+                <small class="text-muted">Feature coming soon...</small>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

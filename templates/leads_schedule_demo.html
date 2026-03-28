@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Schedule Demo - Tea Vending ERP{% endblock %}
+
+{% block page_title %}Schedule Demo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-calendar-alt me-2"></i>Schedule Demo</h5>
+            </div>
+            <div class="card-body">
+                <form id="scheduleDemoForm">
+                    <div class="mb-3">
+                        <label for="leadSelect" class="form-label">Select Lead *</label>
+                        <select class="form-control" id="leadSelect" required>
+                            <option value="">Choose a lead...</option>
+                            <!-- Leads will be loaded here -->
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="userSelect" class="form-label">Assign to Employee *</label>
+                            <select class="form-control" id="userSelect" required>
+                                <option value="">Choose an employee...</option>
+                                <!-- Users will be loaded here -->
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="scheduledDate" class="form-label">Demo Date & Time *</label>
+                            <input type="datetime-local" class="form-control" id="scheduledDate" required>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/leads" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success" id="submitBtn">
+                            <i class="fas fa-calendar-check me-1"></i>Schedule Demo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let leads = [];
+    let users = [];
+
+    async function loadLeads() {
+        try {
+            const response = await fetch('/leads/all-leads', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                leads = await response.json();
+                populateLeadSelect();
+            } else {
+                handleApiError({ status: response.status, message: 'Failed to load leads' });
+            }
+        } catch (error) {
+            console.error('Error loading leads:', error);
+        }
+    }
+
+    async function loadUsers() {
+        try {
+            const response = await fetch('/users/all', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                users = await response.json();
+                populateUserSelect();
+            } else {
+                handleApiError({ status: response.status, message: 'Failed to load users' });
+            }
+        } catch (error) {
+            console.error('Error loading users:', error);
+        }
+    }
+
+    function populateLeadSelect() {
+        const select = document.getElementById('leadSelect');
+        leads.forEach(lead => {
+            const option = document.createElement('option');
+            option.value = lead.id;
+            option.textContent = `${lead.name} (${lead.email})`;
+            select.appendChild(option);
+        });
+    }
+
+    function populateUserSelect() {
+        const select = document.getElementById('userSelect');
+        users.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = `${user.name} (${user.email})`;
+            select.appendChild(option);
+        });
+    }
+
+    const form = document.getElementById('scheduleDemoForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const leadId = document.getElementById('leadSelect').value;
+        const userId = document.getElementById('userSelect').value;
+        const scheduledDate = document.getElementById('scheduledDate').value;
+
+        const formData = {
+            user_id: parseInt(userId),
+            scheduled_date: scheduledDate
+        };
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Scheduling...';
+
+        try {
+            const response = await fetch(`/leads/${leadId}/schedule-demo`, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify(formData)
+            });
+
+            if (response.ok) {
+                alert('Demo scheduled successfully!');
+                window.location.href = '/leads';
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Failed to schedule demo');
+            }
+        } catch (error) {
+            console.error('Error scheduling demo:', error);
+            alert('Failed to schedule demo');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-calendar-check me-1"></i>Schedule Demo';
+        }
+    });
+
+    // Check for lead_id in URL params
+    function checkUrlParams() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const leadId = urlParams.get('lead_id');
+        if (leadId) {
+            document.getElementById('leadSelect').value = leadId;
+        }
+    }
+
+    window.onload = function() {
+        loadLeads();
+        loadUsers();
+        checkUrlParams();
+    };
+</script>
+{% endblock %}

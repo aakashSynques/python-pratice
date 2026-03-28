@@ -4,7 +4,7 @@ from typing import List
 from app.database.db import get_db
 from app.models.master_users import MasterUser
 from app.models.master_role import MasterRole
-from app.schemas.users_schemas import UserCreate, UserResponse, UserLogin
+from app.schemas.users_schemas import UserCreate, UserResponse, UserLogin, UserUpdate
 from app.auth import get_password_hash, verify_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/users", tags=["Master Users"])
@@ -26,7 +26,9 @@ def create_user(user: UserCreate, db: Session = Depends(get_db), current_user: M
         mobile=user.mobile,
         address=user.address,
         password=hashed_password,
-        role_id=user.role_id
+        role_id=user.role_id,
+         status=user.status  
+
     )
     db.add(new_user)
     db.commit()
@@ -39,6 +41,74 @@ def create_user(user: UserCreate, db: Session = Depends(get_db), current_user: M
 def get_users(db: Session = Depends(get_db), current_user: MasterUser = Depends(get_current_user)):
     users = db.query(MasterUser).all()
     return users
+
+
+
+# Update User
+@router.put("/update/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: int,
+    user: UserUpdate,
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
+):
+
+    existing_user = db.query(MasterUser).filter(
+        MasterUser.id == user_id
+    ).first()
+
+    if not existing_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    role = db.query(MasterRole).filter(
+        MasterRole.role_id == user.role_id
+    ).first()
+
+    if not role:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid role"
+        )
+
+    existing_user.name = user.name
+    existing_user.email = user.email
+    existing_user.mobile = user.mobile
+    existing_user.address = user.address
+    existing_user.role_id = user.role_id
+    existing_user.status = user.status
+
+    db.commit()
+    db.refresh(existing_user)
+
+    return existing_user
+
+
+
+# Delete User
+@router.delete("/delete/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: MasterUser = Depends(get_current_user)
+):
+
+    user = db.query(MasterUser).filter(
+        MasterUser.id == user_id
+    ).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    db.delete(user)
+    db.commit()
+
+    return {"message": "User deleted"}
 
 
 

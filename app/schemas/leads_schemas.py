@@ -31,6 +31,7 @@ class LeadResponse(BaseModel):
     email: Optional[str]
     phone: Optional[str]
     source: Optional[str]
+    item_name: str
     status: str
     address: Optional[str]
     is_active: int

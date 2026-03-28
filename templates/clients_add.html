@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Add Client - Tea Vending ERP{% endblock %}
+
+{% block page_title %}Convert Lead to Client{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user-plus me-2"></i>Convert Lead to Client</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    To add a new client, first create a lead and then convert it to a client.
+                    Select a lead below to convert it to a client.
+                </div>
+
+                <form id="convertLeadForm">
+                    <div class="mb-3">
+                        <label for="leadSelect" class="form-label">Select Lead to Convert *</label>
+                        <select class="form-control" id="leadSelect" required>
+                            <option value="">Choose a lead...</option>
+                            <!-- Leads will be loaded here -->
+                        </select>
+                        <div class="form-text">
+                            Only leads that haven't been converted to clients yet will be shown.
+                        </div>
+                    </div>
+
+                    <div id="leadDetails" class="mb-3" style="display: none;">
+                        <h6>Lead Details:</h6>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Name:</strong> <span id="leadName"></span></p>
+                                        <p><strong>Email:</strong> <span id="leadEmail"></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Phone:</strong> <span id="leadPhone"></span></p>
+                                        <p><strong>Item:</strong> <span id="leadItem"></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="/clients" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-arrow-left me-1"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-success" id="submitBtn">
+                            <i class="fas fa-exchange-alt me-1"></i>Convert to Client
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let leads = [];
+
+    async function loadLeads() {
+        try {
+            const response = await fetch('/leads/all-leads', {
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                const allLeads = await response.json();
+                // Filter leads that haven't been converted to clients
+                // For now, we'll show all leads. In a real implementation,
+                // you'd check against existing clients
+                leads = allLeads;
+                populateLeadSelect();
+            } else {
+                handleApiError({ status: response.status, message: 'Failed to load leads' });
+            }
+        } catch (error) {
+            console.error('Error loading leads:', error);
+        }
+    }
+
+    function populateLeadSelect() {
+        const select = document.getElementById('leadSelect');
+        leads.forEach(lead => {
+            const option = document.createElement('option');
+            option.value = lead.id;
+            option.textContent = `${lead.name} (${lead.email}) - ${lead.item_name}`;
+            select.appendChild(option);
+        });
+    }
+
+    document.getElementById('leadSelect').addEventListener('change', function() {
+        const leadId = this.value;
+        const leadDetails = document.getElementById('leadDetails');
+
+        if (leadId) {
+            const selectedLead = leads.find(lead => lead.id == leadId);
+            if (selectedLead) {
+                document.getElementById('leadName').textContent = selectedLead.name;
+                document.getElementById('leadEmail').textContent = selectedLead.email;
+                document.getElementById('leadPhone').textContent = selectedLead.phone;
+                document.getElementById('leadItem').textContent = selectedLead.item_name;
+                leadDetails.style.display = 'block';
+            }
+        } else {
+            leadDetails.style.display = 'none';
+        }
+    });
+
+    const form = document.getElementById('convertLeadForm');
+    const submitBtn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const leadId = document.getElementById('leadSelect').value;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Converting...';
+
+        try {
+            const response = await fetch(`/clients/convert/${leadId}`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+
+            if (response.ok) {
+                alert('Lead converted to client successfully!');
+                window.location.href = '/clients';
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Failed to convert lead to client');
+            }
+        } catch (error) {
+            console.error('Error converting lead:', error);
+            alert('Failed to convert lead to client');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-exchange-alt me-1"></i>Convert to Client';
+        }
+    });
+
+    window.onload = function() {
+        loadLeads();
+    };
+</script>
+{% endblock %}

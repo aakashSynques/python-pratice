@@ -9,7 +9,17 @@ class UserCreate(BaseModel):
     role_id: int
     address: Optional[str] = None
     password: str
+    status: int 
 
+
+class UserUpdate(BaseModel):
+
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    mobile: Optional[str] = None
+    role_id: Optional[int] = None
+    address: Optional[str] = None
+    status: Optional[int] = None
 # Response schema
 class UserResponse(BaseModel):
     id: int
