@@ -112,12 +112,12 @@ app.include_router(master_client_routes.router)
 app.include_router(master_machine_and_part_routes.router)
 app.include_router(work_orders_routes.router)
 
-# ===========================
+
 # Include Template Router
-# ===========================
+
 app.include_router(template_routes.router)
 
-# ===========================
+
 # Create DB tables
-# ===========================
+
 Base.metadata.create_all(bind=engine)
