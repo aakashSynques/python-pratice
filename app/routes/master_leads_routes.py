@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime 
 from sqlalchemy.orm import Session
 from typing import List
 from app.database.db import get_db
@@ -7,7 +8,8 @@ from app.models.master_users import MasterUser
 from app.schemas.leads_schemas import (
     LeadCreate,
     LeadUpdate,
-    LeadResponse
+    LeadResponse,
+    APIResponse
 )
 from app.auth import get_current_user
 
@@ -16,36 +18,58 @@ router = APIRouter(
     tags=["Master Leads"]
 )
 
-# ===============================
 # Create Lead
-# ===============================
-@router.post("/create-leads", response_model=LeadResponse)
+@router.post(
+    "/create-leads",
+    response_model=APIResponse,
+    status_code=status.HTTP_201_CREATED
+)
 def create_lead(
     lead: LeadCreate,
     db: Session = Depends(get_db),
     current_user: MasterUser = Depends(get_current_user)
 ):
+    try:
+        if lead.email:
+            existing = db.query(MasterLead).filter(
+                MasterLead.email == lead.email
+            ).first()
 
-    new_lead = MasterLead(
-        name=lead.name,
-        email=lead.email,
-        phone=lead.phone,
-        item_name=lead.item_name,
-        source=lead.source,
-        address=lead.address,
-        status="new"
-    )
+            if existing:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Email already exists"
+                )
+        new_lead = MasterLead(
+            name=lead.name,
+            email=lead.email,
+            phone=lead.phone,
+            item_name=lead.item_name,
+            source=lead.source,
+            address=lead.address,
+            status="new"
+        )
+        db.add(new_lead)
+        db.commit()
+        db.refresh(new_lead)
+        return APIResponse(
+            success=True,
+            status=201,
+            message="Lead created successfully",
+            data=LeadResponse.model_validate(new_lead)
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
 
-    db.add(new_lead)
-    db.commit()
-    db.refresh(new_lead)
 
-    return new_lead
-
-
-# ===============================
 # Get All Leads
-# ===============================
+
 @router.get("/all-leads", response_model=List[LeadResponse])
 def get_all_leads(
     db: Session = Depends(get_db),
@@ -83,38 +107,61 @@ def get_lead(
     return lead
 
 
-# ===============================
+
 # Update Lead
-# ===============================
-@router.put("/{lead_id}", response_model=LeadResponse)
+@router.put(
+    "/{lead_id}",
+    response_model=APIResponse,
+    status_code=status.HTTP_200_OK
+)
 def update_lead(
     lead_id: int,
     lead_update: LeadUpdate,
     db: Session = Depends(get_db),
     current_user: MasterUser = Depends(get_current_user)
 ):
+    try:
+        # Find Lead
+        lead = db.query(MasterLead).filter(
+            MasterLead.id == lead_id,
+            MasterLead.is_active == 1
+        ).first()
 
-    lead = db.query(MasterLead).filter(
-        MasterLead.id == lead_id,
-        MasterLead.is_active == 1
-    ).first()
+        # Not Found
+        if not lead:
+            raise HTTPException(
+                status_code=404,
+                detail="Lead not found"
+            )
 
-    if not lead:
-        raise HTTPException(
-            status_code=404,
-            detail="Lead not found"
+        # Update Fields
+        update_data = lead_update.dict(exclude_unset=True)
+
+        for key, value in update_data.items():
+            setattr(lead, key, value)
+
+        # Update timestamp
+        lead.updated_at = datetime.utcnow()
+
+        db.commit()
+        db.refresh(lead)
+
+        return APIResponse(
+            success=True,
+            status=200,
+            message="Lead updated successfully",
+            data=LeadResponse.model_validate(lead)
         )
 
-    for key, value in lead_update.dict(
-        exclude_unset=True
-    ).items():
-        setattr(lead, key, value)
+    except HTTPException:
+        raise
 
-    db.commit()
-    db.refresh(lead)
-
-    return lead
-
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to update lead: {str(e)}"
+        )
 
 # ===============================
 # Soft Delete Lead

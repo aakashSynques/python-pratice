@@ -1,0 +1,39 @@
+fastapi_project/
+│
+├── venv/
+├── app/
+│   ├── main.py
+│   │
+│   ├── database/
+│   │   └── db.py
+│   │
+│   ├── models/
+│   │   └── lead_demo_schedule.py
+│   │   └── master_client_model.py
+│   │   └── master_leads.py
+│   │   └── master_role.py
+│   │   └── master_users.py
+│   │   └── lead_demo_schedule.py
+│   │
+│   └── routes/
+│       └── lead_shedule_demo_routes.py
+│       └── master_client_routes.py
+│       └── master_leads_routes.py
+│       └── master_role_routes.py
+│       └── master_users_routes.py
+│       
+│   └── schemas/
+│       └── client_schema.py
+│       └── lead_demo_schemas.py
+│       └── leads_schemas.py
+│       └── role_schemas.py
+│       └── users_schemas.py
+│       
+
+│
+├── requirements.txt
+└── .env
+|--- templates(pip install --upgrade fastapi starlette jinja2)
+
+
+

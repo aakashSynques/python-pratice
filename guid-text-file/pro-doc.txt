@@ -1,0 +1,49 @@
+Chai ETC
+
+Needs a software in python (use MySQL) that does the following -
+
+Register
+Leads 
+Supplier
+Employee
+Machines
+Parts
+Items (Raw-Material)
+Bank
+
+Leads are registered
+Demo is scheduled 
+Employee is assigned to each schedule
+Demo feedback is sent by email & followed.
+
+Leads convert to Clients
+Work order is received
+Agreement is signed
+Clients locations are assigned Machines
+Machine delivery and testing is done.
+Client acceptance is confirmed by OTP for each installation.
+
+Machines consume items and produce Billable-items
+At least minimum Billable-items are invoiced with GST(SGST/CGST/IGST) to clients on monthly basis
+Clients are also invoiced for breakage 
+Billable-items are also scrapped 
+Payments are received from clients against invoices.
+TDS will be deducted by client against each payment.
+Traces confirmation for each tds deducted is to be done.
+Debit notes can be received against invoices
+
+Plan of purchase is generated against each machine
+Items and parts are purchased from suppliers against PO
+Supplier give items and/or parts
+Items and parts are received against PO
+Supplier invoices are received against PO
+Payments are made against Client invoices
+TDS will be deducted against each payment.
+Credit notes can be released against Supplier Invoices
+TDS certificates are sent to Suppliers 
+
+Plan of service is generated against each machine
+Complaints/Tickets are registered against each Machine
+Technician is assigned for each service/ticket
+
+Parts are required to service/repair a product

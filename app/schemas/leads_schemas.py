@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 from datetime import datetime
+from typing import Optional, Any
 
 
 # Create Lead
@@ -8,10 +9,9 @@ class LeadCreate(BaseModel):
     name: str
     email: Optional[EmailStr] = None
     phone: str
-    address: str
     item_name: str
+    address: str
     source: Optional[str] = None
-    address: Optional[str] = None
 
 
 # Update Lead
@@ -20,11 +20,12 @@ class LeadUpdate(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
     source: Optional[str] = None
+    item_name: Optional[str] = None
     status: Optional[str] = None
     address: Optional[str] = None
 
 
-# Response Schema
+# Response Schema (Single Lead)
 class LeadResponse(BaseModel):
     id: int
     name: str
@@ -40,3 +41,11 @@ class LeadResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+
+class APIResponse(BaseModel):
+    success: bool
+    status: int
+    message: str
+    data: Optional[Any] = None
