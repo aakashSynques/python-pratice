@@ -24,10 +24,14 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="userSelect" class="form-label">Assign to Employee *</label>
-                            <select class="form-control" id="userSelect" required>
+                            <!-- <select class="form-control" id="userSelect" required>
                                 <option value="">Choose an employee...</option>
-                                <!-- Users will be loaded here -->
+                            </select> -->
+
+                            <select class="form-control" id="leadSelect" required>
                             </select>
+
+
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="scheduledDate" class="form-label">Demo Date & Time *</label>
@@ -112,7 +116,7 @@
     const form = document.getElementById('scheduleDemoForm');
     const submitBtn = document.getElementById('submitBtn');
 
-    form.addEventListener('submit', async function(e) {
+    form.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const leadId = document.getElementById('leadSelect').value;
@@ -159,10 +163,88 @@
         }
     }
 
-    window.onload = function() {
+    window.onload = function () {
         loadLeads();
         loadUsers();
         checkUrlParams();
     };
 </script>
+<!-- 
+<script src="./user-list.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    loadUsersList("usersListContainer");
+});
+
+</script> -->
+<script>
+
+    async function loadUsersDropdown(selectId) {
+
+        try {
+
+            console.log("Loading users...");
+
+            const res = await fetch('/users/all', {
+                headers: getAuthHeaders()
+            });
+
+            console.log("Response status:", res.status);
+
+            if (!res.ok) {
+                throw new Error("Users fetch failed");
+            }
+
+            const usersData = await res.json();
+
+            console.log("Users Loaded:", usersData);
+
+            const select = document.getElementById(selectId);
+
+            if (!select) {
+
+                console.warn("Select not found:", selectId);
+
+                return;
+
+            }
+
+            select.innerHTML =
+                `<option value="">Choose User...</option>`;
+
+            usersData.forEach(user => {
+
+                console.log("Adding user:", user);
+
+                const option = document.createElement("option");
+
+                option.value = user.id;
+
+                option.textContent =
+                    user.name || "No Name";
+
+                select.appendChild(option);
+
+            });
+
+        } catch (error) {
+
+            console.error("Users Error:", error);
+
+            alert("Failed to load users");
+
+        }
+
+    }
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        loadUsersDropdown("leadSelect");
+
+    });
+
+</script>
+
 {% endblock %}

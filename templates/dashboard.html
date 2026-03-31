@@ -2,10 +2,11 @@
 
 {% block title %}Dashboard - Tea Vending ERP{% endblock %}
 
-{% block page_title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %} 
+{% block page_description %}Overview of your Tea Vending ERP system{% endblock %}
 
 {% block content %}
-<div class="row">
+<!-- <div class="row">
     <div class="col-md-12">
         <div class="alert alert-info" role="alert">
             <h4 class="alert-heading">
@@ -130,5 +131,220 @@
             </div>
         </div>
     </div>
-</div>
+</div> -->
+
+
+ <div >
+    <div class="row g-4 mb-4">
+      <div class="col-sm-6 col-xl">
+        <div class="metric-card">
+          <div class="metric-top">
+            <div>
+              <p>Total Machines Installed</p>
+              <h3>128</h3>
+              <small class="text-success">+6 this month</small>
+            </div>
+            <span class="icon-circle"><i class="bi bi-cpu-fill"></i></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl">
+        <div class="metric-card">
+          <div class="metric-top">
+            <div>
+              <p>Active Clients</p>
+              <h3>42</h3>
+              <small class="text-success">89% retained</small>
+            </div>
+            <span class="icon-circle"><i class="bi bi-buildings-fill"></i></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl">
+        <div class="metric-card">
+          <div class="metric-top">
+            <div>
+              <p>Monthly Cups Sold</p>
+              <h3>1,84,500</h3>
+              <small class="text-success">Tea + Coffee</small>
+            </div>
+            <span class="icon-circle"><i class="bi bi-cup-hot-fill"></i></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl">
+        <div class="metric-card">
+          <div class="metric-top">
+            <div>
+              <p>Revenue Summary</p>
+              <h3>₹18.9L</h3>
+              <small class="text-success">GST inclusive</small>
+            </div>
+            <span class="icon-circle"><i class="bi bi-graph-up-arrow"></i></span>
+          </div>
+        </div>
+      </div>
+      <div class="col-sm-6 col-xl">
+        <div class="metric-card">
+          <div class="metric-top">
+            <div>
+              <p>Pending Payments</p>
+              <h3>₹4.2L</h3>
+              <small class="text-danger">7 invoices due</small>
+            </div>
+            <span class="icon-circle"><i class="bi bi-hourglass-split"></i></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-7">
+        <div class="section-card h-100">
+          <div class="section-title">
+            <h5>Business Lifecycle Flow</h5>
+            <span class="badge badge-status status-service">Live Pipeline</span>
+          </div>
+          <div class="flow-step">
+            <span class="step-no">1</span>
+            <div>
+              <strong>Leads Registered</strong>
+              <p class="soft-text">38 open leads from corporate offices, hospitals and factories.</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="step-no">2</span>
+            <div>
+              <strong>Demo Scheduled</strong>
+              <p class="soft-text">12 demos assigned to Amit Verma and team this week.</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="step-no">3</span>
+            <div>
+              <strong>Client Conversion & Agreement</strong>
+              <p class="soft-text">6 deals in documentation stage, 3 ready for machine dispatch.</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="step-no">4</span>
+            <div>
+              <strong>Installation & OTP Acceptance</strong>
+              <p class="soft-text">4 site installations pending OTP confirmation from admin users.</p>
+            </div>
+          </div>
+          <div class="flow-step">
+            <span class="step-no">5</span>
+            <div>
+              <strong>Consumption → Billing → Payment</strong>
+              <p class="soft-text">ABC Corporate Office generated 12,000 tea cups this month at ₹10 per cup.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-5">
+        <div class="section-card h-100">
+          <div class="section-title">
+            <h5>Collections & Service Snapshot</h5>
+            <button class="btn btn-sm btn-primary" data-alert="Follow-up reminders triggered for all overdue invoices.">Send reminders</button>
+          </div>
+
+          <div class="kpi-list mb-4">
+            <div class="kpi-line">
+              <div class="d-flex justify-content-between">
+                <span>Invoice collection</span>
+                <strong>76%</strong>
+              </div>
+              <div class="progress"><div class="progress-bar bg-primary" style="width: 76%"></div></div>
+            </div>
+            <div class="kpi-line">
+              <div class="d-flex justify-content-between">
+                <span>Supplier payments cleared</span>
+                <strong>64%</strong>
+              </div>
+              <div class="progress"><div class="progress-bar bg-success" style="width: 64%"></div></div>
+            </div>
+            <div class="kpi-line">
+              <div class="d-flex justify-content-between">
+                <span>Service tickets resolved</span>
+                <strong>88%</strong>
+              </div>
+              <div class="progress"><div class="progress-bar bg-info" style="width: 88%"></div></div>
+            </div>
+          </div>
+
+          <div class="highlight-box">
+            <h6 class="mb-2">Top alert</h6>
+            <p class="mb-2">Invoice <strong>INV-2403-18</strong> for <strong>₹1,20,000</strong> is pending after 12 days with 10% TDS expected.</p>
+            <span class="badge badge-status status-pending">TRACES confirmation awaited</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-lg-8">
+        <div class="section-card">
+          <div class="section-title">
+            <h5>Priority Receivables</h5>
+            <span class="soft-text">Static sortable table</span>
+          </div>
+          <div class="table-responsive">
+            <table class="table align-middle" data-sort-table>
+              <thead>
+                <tr>
+                  <th data-sort>Client</th>
+                  <th data-sort>Invoice No</th>
+                  <th data-sort>Amount</th>
+                  <th data-sort>Due Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr data-search-row>
+                  <td>ABC Corporate Office</td>
+                  <td>INV-2403-18</td>
+                  <td>₹1,20,000</td>
+                  <td>05 Apr 2026</td>
+                  <td><span class="badge badge-status status-pending">Pending</span></td>
+                </tr>
+                <tr data-search-row>
+                  <td>Metro Hospital</td>
+                  <td>INV-2403-21</td>
+                  <td>₹86,400</td>
+                  <td>03 Apr 2026</td>
+                  <td><span class="badge badge-status status-warning">Follow-up</span></td>
+                </tr>
+                <tr data-search-row>
+                  <td>Zenith Industries</td>
+                  <td>INV-2403-14</td>
+                  <td>₹58,700</td>
+                  <td>01 Apr 2026</td>
+                  <td><span class="badge badge-status status-completed">Part Paid</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="section-card">
+          <div class="section-title">
+            <h5>Quick Actions</h5>
+            <button class="btn btn-sm btn-outline-primary" data-modal-title="Today’s Action Summary" data-modal-confirm="Looks Good" data-modal-toast="Dashboard summary reviewed." data-modal-body="<ul class='mb-0 ps-3'><li>4 installations are awaiting OTP acceptance</li><li>7 invoices need payment follow-up</li><li>1 coffee premix reorder should be raised today</li></ul>">View summary</button>
+          </div>
+          <div class="d-grid gap-2">
+            <button class="btn btn-primary" data-modal-title="Schedule New Demo" data-modal-confirm="Create Demo" data-modal-toast="New demo request queued from dashboard." data-modal-body="<p><strong>Prospect:</strong> ABC Corporate Office</p><p><strong>Assigned Employee:</strong> Amit Verma</p><p class='mb-0'><strong>Preferred Slot:</strong> 03 Apr 2026, 11:30 AM</p>">Schedule new demo</button>
+            <button class="btn btn-outline-primary" data-modal-title="Generate Monthly Invoice" data-modal-confirm="Generate" data-modal-toast="Invoice preview approved for March billing." data-modal-body="<p><strong>Client:</strong> ABC Corporate Office</p><p><strong>Tea Cups:</strong> 12,000 @ ₹10</p><p class='mb-0'><strong>Estimated Total:</strong> ₹1,46,100 including GST and breakage</p>">Generate monthly invoice</button>
+            <button class="btn btn-outline-success" data-modal-title="Raise Purchase Order" data-modal-confirm="Raise PO" data-modal-toast="Purchase order draft created for tea premix replenishment." data-modal-body="<p><strong>Supplier:</strong> Tea Supply Co.</p><p><strong>Items:</strong> Tea Premix, Cups</p><p class='mb-0'><strong>Priority:</strong> High due to upcoming demand</p>">Raise purchase order</button>
+            <button class="btn btn-outline-dark" data-modal-title="Register Service Complaint" data-modal-confirm="Assign Ticket" data-modal-toast="Service ticket created and technician notified." data-modal-body="<p><strong>Machine:</strong> TVM-101</p><p><strong>Technician:</strong> Ravi Kumar</p><p class='mb-0'><strong>Issue:</strong> Slow dispensing from tea line</p>">Register service complaint</button>
+          </div>
+          <p class="footer-note mt-3 mb-0">All values are dummy data for static UI representation only.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
 {% endblock %}

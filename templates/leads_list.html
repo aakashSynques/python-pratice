@@ -1,43 +1,47 @@
 {% extends "base.html" %}
 {% block title %}Leads - Tea Vending ERP{% endblock %}
 {% block page_title %}Lead Management{% endblock %}
+{% block page_description %}Create, update, and manage your sales leads in the Tea Vending ERP system{% endblock %}
 {% block content %}
-<div class="card-header">
-    <div class="row">
-        <div class="col-md-6">
-            <h5 class="mb-0">Leads Management</h5>
-        </div>
-        <div class="col-md-6 text-end">
-            <button class="btn bg-color btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addLeadModal">
-                <i class="fas fa-plus me-1"></i>
-                Add New Lead
-            </button>
-        </div>
-    </div>
-</div>
-<div class="card-body" style="    padding: 8px 0 0;">
-    <div class="table-responsive">
-        <table class="table table-hover table-bordered  align-middle" id="leadsTable" style="width:100%">
-            <thead class="table-secondary">
-                <tr>
-                    <th>SNo</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Address</th>
-                    <th>Item</th>
-                    <th>Source</th>
-                    <!-- <th>Status</th> -->
-                    <th>Date</th>
-                    <th width="120">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="leadsTableBody">
-            </tbody>
-        </table>
-    </div>
-</div>
 
+<div class="card p-2">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mb-0">Leads Management</h5>
+            </div>
+            <div class="col-md-6 text-end">
+                <button class="btn bg-color btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addLeadModal">
+                    <i class="fas fa-plus me-1"></i>
+                    Add New Lead
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body" style="    padding: 8px 0 0;">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered  align-middle" id="leadsTable" style="width:100%">
+                <thead class="table-secondary">
+                    <tr>
+                        <th>SNo</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Address</th>
+                        <th>Item</th>
+                        <th>Source</th>
+                        <!-- <th>Status</th> -->
+                        <th>Date</th>
+                        <th>Schedule Demo</th>
+                        <th width="60">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="leadsTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 <!-- // ================= Add Lead  ================= // -->
 <div class="modal fade" id="addLeadModal" tabindex="-1">
@@ -107,7 +111,8 @@
                 <h5 class="modal-title">Edit Lead</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"> </button>
             </div>
-            <div class="modal-body"><form id="editLeadForm">
+            <div class="modal-body">
+                <form id="editLeadForm">
                     <input type="hidden" id="edit_lead_id">
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -154,6 +159,46 @@
         </div>
     </div>
 </div>
+
+<!-- ================= Demo Sedule Modal ================= -->
+
+<div class="modal fade" id="demoSeduleModel" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Schedule Demo</h5>
+
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body">
+
+                <form id="demoScheduleForm">
+                    <input type="hidden" id="edit_lead_id">
+                    <div class="mb-3">
+                        <label>Select Employee *</label>
+                        <select class="form-control" id="leadSelect" required>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Demo Date *</label>
+                        <input type="datetime-local" id="demo_date" class="form-control" required>
+                    </div>
+                    <button type="submit" class="btn bg-color btn-sm btn-success">
+                        Schedule Demo
+                    </button>
+                    <div id="demoMsg" class="mt-2" style="color: green; font-weight: 500;"></div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 {% block scripts %}
 <script>
@@ -207,6 +252,11 @@
                 </td>    -->
                 <td>${new Date(lead.created_at).toLocaleString()}</td>
                 <td>
+<button class="btn btn-sm badge-status status-completed"
+        onclick="scheduleDemo(${lead.id})">Schedule
+</button>
+                </td>
+                <td>
                     <div class="btn-group" role="group" >
                         <button  class=" btn btn-sm btn-outline-primary p-0 px-2" id="editLeadBtn" onclick="editLead(${lead.id})" >
                             <i class="fas fa-edit"></i>
@@ -224,9 +274,9 @@
         initializeDataTable();
     }
 
-//    <button class="mx-1 btn btn-sm btn-outline-success p-0 px-2" onclick="scheduleDemo(${lead.id})" >
-//                             <i class="fas fa-calendar"></i>
-//                         </button>
+    //    <button class="mx-1 btn btn-sm btn-outline-success p-0 px-2" onclick="scheduleDemo(${lead.id})" >
+    //                             <i class="fas fa-calendar"></i>
+    //                         </button>
 
     // Initialize DataTable
     function initializeDataTable() {
@@ -297,7 +347,7 @@
             document.getElementById(elementId);
         if (!msgDiv) return;
         msgDiv.innerText = message;
-        msgDiv.classList.remove("text-success","text-danger","text-warning"
+        msgDiv.classList.remove("text-success", "text-danger", "text-warning"
         );
         if (type === "success") {
             msgDiv.classList.add("text-success");
@@ -372,6 +422,9 @@
         .getElementById('addLeadForm')
         .addEventListener('submit', addLead);
     // Edit Lead
+
+
+
     function editLead(id) {
         fetch(`/leads/${id}`, {
             headers: getAuthHeaders()
@@ -436,8 +489,8 @@
     document
         .getElementById("editLeadForm")
         .addEventListener("submit", updateLead);
-    // Schedule Demo
-    function scheduleDemo(id) { window.location.href = `/leads/schedule?lead_id=${id}`; }
+
+
     // Delete Lead
     async function deleteLead(id) {
         if (confirm('Are you sure you want to delete this lead?')) {
@@ -468,4 +521,161 @@
     // Load when page ready
     $(document).ready(function () { loadLeads(); });
 </script>
+
+<!-- <script>
+    async function loadUsersDropdown(selectId) {
+        try {
+            const res = await fetch('/users/all', {
+                headers: getAuthHeaders()
+            });
+            if (!res.ok) {
+                throw new Error("Users fetch failed");
+            }
+            const usersData = await res.json();
+            const select = document.getElementById(selectId);
+            if (!select) {
+                return;
+            }
+            select.innerHTML =
+                `<option value="">select employee</option>`;
+            usersData.forEach(user => {
+                const option = document.createElement("option");
+                option.value = user.id;
+                option.textContent = user.name || "No Name";
+                select.appendChild(option);
+            });
+        } catch (error) {
+            alert("Failed to load users");
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        loadUsersDropdown("leadSelect");
+    });
+</script> -->
+
+<script>
+    let demoSeduleModel;
+    let demoScheduleForm;
+    document.addEventListener("DOMContentLoaded", function () {
+        const modalElement = document.getElementById("demoSeduleModel");
+        demoSeduleModel = new bootstrap.Modal(modalElement);
+        demoScheduleForm = document.getElementById("demoScheduleForm");
+        demoScheduleForm.addEventListener(
+            "submit",
+            handleDemoSubmit
+        );
+        loadUsersDropdown("leadSelect");
+    });
+    function scheduleDemo(id) {
+        document.getElementById("edit_lead_id").value = id;
+        demoSeduleModel.show();
+    }
+    async function loadUsersDropdown(selectId) {
+        try {
+            const res = await fetch('/users/all', {
+                headers: getAuthHeaders()
+            });
+            if (!res.ok) {
+                throw new Error("User fetch failed");
+            }
+            const users = await res.json();
+            const select = document.getElementById(selectId);
+            if (!select) {
+                console.warn("Dropdown not found");
+                return;
+            }
+            select.innerHTML =
+                `<option value="">Choose Employee</option>`;
+            users.forEach(user => {
+                const option =
+                    document.createElement("option");
+                option.value = user.id;
+                option.textContent =
+                    `${user.name} (${user.mobile || ''})`;
+                select.appendChild(option);
+            });
+        }
+        catch (error) {
+            alert("Failed to load users");
+
+        }
+    }
+
+
+    /* ================= FORM SUBMIT ================= */
+
+    async function handleDemoSubmit(event) {
+        event.preventDefault(); // stop refresh
+        const leadId =
+            document.getElementById("edit_lead_id").value;
+
+        const employeeId =
+            document.getElementById("leadSelect").value;
+
+        const demoDate =
+            document.getElementById("demo_date").value;
+        if (!employeeId || !demoDate) {
+            alert("Please select employee and demo date");
+            return;
+
+        }
+        try {
+            const response = await fetch(
+                `/leads/${leadId}/schedule-demo`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...getAuthHeaders()
+                    },
+
+                    body: JSON.stringify({
+                        user_id: employeeId,
+                        scheduled_date: demoDate
+                    })
+
+                }
+            );
+            // if (response.ok) {
+            //     alert("Demo scheduled successfully");
+
+            //     demoScheduleForm.reset();
+            //     demoSeduleModel.hide();
+            //     if (typeof loadLeads === "function") {
+            //         loadLeads();
+            //     }
+
+            // }
+            if (response.ok) {
+                // simple text message show
+                document.getElementById("demoMsg").innerText = "Demo scheduled successfully";
+                demoScheduleForm.reset();
+                // 2 second baad modal close
+                setTimeout(() => {
+                    demoSeduleModel.hide();
+                    document.getElementById("demoMsg").innerText = "";
+                }, 2000);
+                if (typeof loadLeads === "function") {
+                    loadLeads();
+                }
+            }
+            else {
+                const result =
+                    await response.json();
+                alert(
+                    result.detail ||
+                    "Failed to schedule demo"
+                );
+            }
+        }
+        catch (error) {
+            alert("Server error: " + error.message);
+
+        }
+
+    }
+
+</script>
+
 {% endblock %}
