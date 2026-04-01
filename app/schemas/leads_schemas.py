@@ -21,11 +21,11 @@ class LeadUpdate(BaseModel):
     phone: Optional[str] = None
     source: Optional[str] = None
     item_name: Optional[str] = None
-    status: Optional[str] = None
+    lead_status: Optional[int] = None
     address: Optional[str] = None
 
 
-# Response Schema (Single Lead)
+# Response Schema 
 class LeadResponse(BaseModel):
     id: int
     name: str
@@ -33,7 +33,7 @@ class LeadResponse(BaseModel):
     phone: Optional[str]
     source: Optional[str]
     item_name: str
-    status: str
+    lead_status: int
     address: Optional[str]
     is_active: int
     created_at: datetime
@@ -42,6 +42,10 @@ class LeadResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+
+class LeadStatusUpdate(BaseModel):
+    lead_status: int   # 1=new, 2=contacted, 3=demo_scheduled, 4=converted
 
 
 class APIResponse(BaseModel):

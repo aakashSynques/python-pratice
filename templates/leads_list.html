@@ -30,10 +30,10 @@
                         <th>Address</th>
                         <th>Item</th>
                         <th>Source</th>
-                        <!-- <th>Status</th> -->
+                        <th>Status</th>
                         <th>Date</th>
-                        <th>Schedule Demo</th>
-                        <th width="60">Actions</th>
+                        <th width="150">Schedule Demo</th>
+                        <th width="150">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="leadsTableBody">
@@ -203,6 +203,58 @@
 {% block scripts %}
 <script>
     let leadsTable;
+
+
+
+    function renderDemoColumn(lead) {
+
+        // Agar demo exist karta hai
+        if (lead.demos && lead.demos.length > 0) {
+
+            // latest demo lo
+            const demo = lead.demos[0];
+
+            const date = new Date(
+                demo.scheduled_date
+            ).toLocaleString();
+
+            return `
+            <div>
+              <!--  <span class="badge bg-info">
+                    Demo Scheduled
+                </span>
+                <br> -->
+                <span class="text-info1" style="
+  
+    font-size: 13.5px;">${date}</span>
+
+
+    <button class="btn btn-sm " style="font-size: 11.5px;
+    padding: 2px 9px;
+    /* border: 1px solid #dfcbae; */
+    margin-top: 6px;
+    background: #f7e5ac;
+    color: #7b4900;
+    border-radius: 9px;
+    font-weight: 600;">Send Feedback Link</button>
+            </div>
+        `;
+        }
+
+        // Agar demo nahi hai → button show
+        return `
+        <button
+            class="btn btn-sm badge-status status-completed"
+            onclick="scheduleDemo(${lead.id})"
+        >
+            Schedule
+        </button>
+    `;
+    }
+
+
+
+
     async function loadLeads() {
         try {
             const response = await fetch('/leads/all-leads',
@@ -214,6 +266,7 @@
                 const leadsData =
                     await response.json();
                 renderLeadsTable(leadsData);
+
             }
             else {
                 handleApiError({
@@ -226,6 +279,9 @@
             alert('Failed to load leads');
         }
     }
+
+
+
     // Render Table Rows
     function renderLeadsTable(data) {
         if ($.fn.DataTable.isDataTable('#leadsTable')) {
@@ -245,27 +301,59 @@
                 <td>${lead.address}</td>
                 <td>${lead.item_name}</td>
                 <td>${lead.source}</td>
-          <!--   <td>
-                    <span class="badge bg-${getStatusColor(lead.status)}">
-                        ${lead.status}
+  <!-- <td>
+                    <span class="badge bg-${getStatusColor(lead.lead_status)}">
+                        ${lead.lead_status}
                     </span>
-                </td>    -->
+                </td>   
+        -->
+
+<td width="150">
+
+<select 
+    class="drop-down-style"
+    style="
+        background-color:${getStatusColor(lead.lead_status)};
+        color:${getStatusTextColor(lead.lead_status)};
+     
+    "
+    onchange="updateLeadStatus(${lead.id}, this)"
+>
+
+<option value="1" ${lead.lead_status == 1 ? "selected" : ""}>
+    New
+</option>
+
+<option value="2" ${lead.lead_status == 2 ? "selected" : ""}>
+    Contacted
+</option>
+
+<option value="3" ${lead.lead_status == 3 ? "selected" : ""}>
+    Scheduled Demo
+</option>
+
+<option value="4" ${lead.lead_status == 4 ? "selected" : ""}>
+    Converted
+</option>
+
+<option value="5" ${lead.lead_status == 5 ? "selected" : ""}>
+    Lost
+</option>
+
+</select>
+
+</td>
+
+
+                
                 <td>${new Date(lead.created_at).toLocaleString()}</td>
                 <td>
-<button class="btn btn-sm badge-status status-completed"
-        onclick="scheduleDemo(${lead.id})">Schedule
-</button>
-                </td>
+    ${renderDemoColumn(lead)}
+</td>
                 <td>
-                    <div class="btn-group" role="group" >
-                        <button  class=" btn btn-sm btn-outline-primary p-0 px-2" id="editLeadBtn" onclick="editLead(${lead.id})" >
-                            <i class="fas fa-edit"></i>
-                        </button>  
-                     
-                        <button  class="btn btn-sm btn-outline-danger p-0 px-2" onclick="deleteLead(${lead.id})" >
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
+                    <button class="btn btn-sm btn-outline-info" onclick="sendFeedbackLink(${lead.id})">
+                        <i class="fas fa-envelope"></i> Send Feedback
+                    </button>
                 </td>
             </tr>
         `;
@@ -329,18 +417,98 @@
         });
     }
     // Status Badge Color
+
+
     function getStatusColor(status) {
-        switch (status) {
-            case 'new':
-                return 'secondary';
-            case 'demo_scheduled':
-                return 'info';
-            case 'demo_completed':
-                return 'success';
+
+        switch (parseInt(status)) {
+
+            case 1:
+                return "#e2e3e5"; // Light Gray
+
+            case 2:
+                return "#cfe2ff"; // Light Blue
+
+            case 3:
+                return "#ffe5d0"; // Light Orange
+
+            case 4:
+                return "#d1e7dd"; // Light Green
+
+            case 5:
+                return "#f8d7da"; // Light Red
+
             default:
-                return 'secondary';
+                return "#e2e3e5";
         }
     }
+
+    function getStatusTextColor(status) {
+
+        switch (parseInt(status)) {
+
+            case 1:
+                return "#41464b"; // Dark Gray
+
+            case 2:
+                return "#084298"; // Dark Blue
+
+            case 3:
+                return "#7a3e00"; // Dark Orange
+
+            case 4:
+                return "#0f5132"; // Dark Green
+
+            case 5:
+                return "#842029"; // Dark Red
+
+            default:
+                return "#41464b";
+        }
+    }
+
+    // function getStatusColor(status) {
+
+    //     switch (status) {
+
+    //         case 1:
+    //             return 'secondary'; // New
+
+    //         case 2:
+    //             return 'info'; // Demo Scheduled
+
+    //         case 3:
+    //             return 'warning'; // Demo Completed
+
+    //         case 4:
+    //             return 'success'; // Converted
+
+    //         case 5:
+    //             return 'danger'; // Lost
+
+    //         default:
+    //             return 'secondary';
+    //     }
+    // }
+
+    function getStatusText(status) {
+        switch (status) {
+            case 1:
+                return 'New';
+            case 2:
+                return 'Contacted';
+            case 3:
+                return 'Scheduled Demo';
+            case 4:
+                return 'Converted';
+            case 5:
+                return 'Lost';
+            default:
+                return 'Unknown';
+        }
+    }
+
+
 
     function showLeadMessage(type, message, elementId = "leadMessage") {
         const msgDiv =
@@ -677,5 +845,108 @@
     }
 
 </script>
+<script>
+    async function updateLeadStatus(leadId, selectElement) {
+
+        const statusValue = parseInt(selectElement.value);
+
+        const confirmed = confirm("Are you sure you want to update the lead status?");
+        if (!confirmed) {
+            loadLeads();
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                `/leads/${leadId}/status`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...getAuthHeaders()
+                    },
+                    body: JSON.stringify({
+                        lead_status: statusValue
+                    })
+                }
+            );
+
+            const result = await response.json();
+            if (response.ok && result.success) {
+                const statusValue = parseInt(selectElement.value);
+                selectElement.style.backgroundColor =
+                    getStatusColor(statusValue);
+                selectElement.style.color =
+                    getStatusTextColor(statusValue);
+
+                showLeadMessage(
+                    "success",
+                    "Status updated successfully"
+                );
+
+            }
+            else {
+
+                showLeadMessage(
+                    "danger",
+                    result.detail || "Failed to update status"
+                );
+
+                loadLeads();
+
+            }
+
+        }
+        catch (error) {
+
+            showLeadMessage(
+                "danger",
+                "Server error while updating status"
+            );
+
+            loadLeads();
+
+        }
+    }
+
+    // Send Feedback Link
+    async function sendFeedbackLink(leadId) {
+        const confirmed = confirm("Are you sure you want to send a feedback link to this lead?");
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            const response = await fetch(
+                `/leads/send-feedback/${leadId}`,
+                {
+                    method: "POST",
+                    headers: getAuthHeaders()
+                }
+            );
+
+            const result = await response.json();
+            if (response.ok && result.success) {
+                showLeadMessage(
+                    "success",
+                    "Feedback email sent successfully"
+                );
+            } else {
+                showLeadMessage(
+                    "danger",
+                    result.detail || "Failed to send feedback email"
+                );
+            }
+        } catch (error) {
+            showLeadMessage(
+                "danger",
+                "Server error while sending feedback email"
+            );
+        }
+    }
+</script>
+
+
 
 {% endblock %}

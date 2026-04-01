@@ -11,17 +11,20 @@ class ScheduleDemoCreate(BaseModel):
 class DemoFeedbackUpdate(BaseModel):
 
     feedback: str
-    status: str
+    status: int   # 2=Process, 3=Completed
 
 
 class DemoResponse(BaseModel):
-
     id: int
     lead_id: int
     user_id: int
     scheduled_date: datetime
     feedback: Optional[str]
-    status: str
+    status: int
 
     class Config:
         from_attributes = True
+
+
+
+        

@@ -13,7 +13,7 @@ class MasterLead(Base):
     address = Column(String(50), nullable=True)
     item_name = Column(String(50), nullable=True)
     source = Column(String(50), nullable=True, comment="Lead source (referral, website, etc.)")
-    status = Column(String(50), default="new", comment="Lead status: new, contacted, demo_scheduled, converted")
+    lead_status = Column(Integer, default=1, comment="1=new, 2=contacted, 3=demo_scheduled, 4=converted")
     is_active = Column(Integer, default=1, comment="1=active, 0=inactive")
     created_at = Column(DateTime, default=datetime.utcnow, )
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, )

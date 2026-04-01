@@ -72,7 +72,12 @@ from fastapi import APIRouter, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 import os
-
+from fastapi import Depends, Request
+import base64
+from sqlalchemy.orm import Session
+from app.database.db import get_db
+from app.models.master_leads import MasterLead
+from app.utils import validate_feedback_token
 router = APIRouter()
 
 # Absolute path to templates folder
@@ -144,6 +149,10 @@ def leads_schedule(request: Request):
         context={"request": request}
     )
 
+
+
+
+
 # ===========================
 # Client Management
 # ===========================
@@ -199,4 +208,45 @@ def machines_add(request: Request):
         request=request,
         name="machines_add.html",
         context={"request": request}
+    )
+
+
+
+
+
+@router.get("/feedback/{token}", response_class=HTMLResponse)
+def feedback_form(request: Request, token: str, db: Session = Depends(get_db)):
+    # Validate token
+    token_data = validate_feedback_token(token)
+    if not token_data:
+        return templates.TemplateResponse(
+            request=request,
+            name="feedback.html",
+            context={"request": request, "error": "Invalid or Expired Link"}
+        )
+
+    # Fetch lead details
+    lead = db.query(MasterLead).filter(MasterLead.id == token_data["lead_id"]).first()
+    if not lead:
+        return templates.TemplateResponse(
+            request=request,
+            name="feedback.html",
+            context={"request": request, "error": "Lead not found"}
+        )
+
+    # Render feedback page with lead details
+    return templates.TemplateResponse(
+        request=request,
+        name="feedback.html",
+        context={
+            "request": request,
+            "lead_name": lead.name,
+            "lead_email": lead.email,
+            "lead_phone": lead.phone,
+            "lead_address": lead.address,
+            "lead_item_name": lead.item_name,
+            "lead_source": lead.source,
+            "lead_status": lead.lead_status,
+            "error": None
+        }
     )
