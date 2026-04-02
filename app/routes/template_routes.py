@@ -77,7 +77,12 @@ import base64
 from sqlalchemy.orm import Session
 from app.database.db import get_db
 from app.models.master_leads import MasterLead
+from app.models.lead_demo_schedule import LeadDemoSchedule
+from app.models.master_users import MasterUser
+from app.models.master_role import MasterRole
+from app.models.demo_feedback_model import LeadDemoFeedback
 from app.utils import validate_feedback_token
+from app.schemas.lead_demo_schemas import DemoFeedbackSubmit
 router = APIRouter()
 
 # Absolute path to templates folder
@@ -141,7 +146,7 @@ def leads_add(request: Request):
         context={"request": request}
     )
 
-@router.get("/leads/schedule", response_class=HTMLResponse)
+@router.get("/leads_schedule_demo", response_class=HTMLResponse)
 def leads_schedule(request: Request):
     return templates.TemplateResponse(
         request=request,
@@ -215,8 +220,8 @@ def machines_add(request: Request):
 
 
 @router.get("/feedback/{token}", response_class=HTMLResponse)
-def feedback_form(request: Request, token: str, db: Session = Depends(get_db)):
-    # Validate token
+def feedback_form(request: Request, token: str):
+    # Validate token only, page will fetch details via JS API call
     token_data = validate_feedback_token(token)
     if not token_data:
         return templates.TemplateResponse(
@@ -225,28 +230,109 @@ def feedback_form(request: Request, token: str, db: Session = Depends(get_db)):
             context={"request": request, "error": "Invalid or Expired Link"}
         )
 
-    # Fetch lead details
-    lead = db.query(MasterLead).filter(MasterLead.id == token_data["lead_id"]).first()
-    if not lead:
-        return templates.TemplateResponse(
-            request=request,
-            name="feedback.html",
-            context={"request": request, "error": "Lead not found"}
-        )
-
-    # Render feedback page with lead details
     return templates.TemplateResponse(
         request=request,
         name="feedback.html",
         context={
             "request": request,
-            "lead_name": lead.name,
-            "lead_email": lead.email,
-            "lead_phone": lead.phone,
-            "lead_address": lead.address,
-            "lead_item_name": lead.item_name,
-            "lead_source": lead.source,
-            "lead_status": lead.lead_status,
+            "token": token,
             "error": None
         }
     )
+
+
+@router.get("/api/feedback-data/{token}")
+def feedback_data_api(token: str, db: Session = Depends(get_db)):
+    token_data = validate_feedback_token(token)
+    if not token_data:
+        return {"success": False, "message": "Invalid or expired link"}
+    demo_schedule_id = token_data.get("demo_schedule_id")
+    if not demo_schedule_id:
+        return {"success": False, "message": "demo_schedule_id not present in token"}
+    
+    demo = db.query(LeadDemoSchedule).filter(LeadDemoSchedule.id == demo_schedule_id).first()
+    if not demo:
+        return {"success": False, "message": "Demo schedule not found"}
+    
+    # Fetch lead data
+    lead = db.query(MasterLead).filter(MasterLead.id == demo.lead_id).first()
+    
+    # Fetch user data with role
+    user = db.query(MasterUser, MasterRole.role_name).join(MasterRole, MasterUser.role_id == MasterRole.role_id).filter(MasterUser.id == demo.user_id).first()
+    
+    return {
+        "success": True,
+        "data": {
+            "demo": {
+                "id": demo.id,
+                "lead_id": demo.lead_id,
+                "user_id": demo.user_id,
+                "scheduled_date": demo.scheduled_date.isoformat() if demo.scheduled_date else None,
+                "feedback": demo.feedback,
+                "status": demo.status,
+                "feedback_email_send_status": demo.feedback_email_send_status,
+                "created_at": demo.created_at.isoformat() if demo.created_at else None,
+                "updated_at": demo.updated_at.isoformat() if demo.updated_at else None
+            },
+            "lead": {
+                "id": lead.id if lead else None,
+                "name": lead.name if lead else None,
+                "email": lead.email if lead else None,
+                "phone": lead.phone if lead else None,
+                "address": lead.address if lead else None,
+                "item_name": lead.item_name if lead else None,
+                "source": lead.source if lead else None,
+                "lead_status": lead.lead_status if lead else None
+            } if lead else None,
+            "user": {
+                "id": user[0].id if user else None,
+                "name": user[0].name if user else None,
+                "email": user[0].email if user else None,
+                "phone": user[0].mobile if user else None,
+                "role": user[1] if user else None
+            } if user else None
+        }
+    }
+
+
+@router.post("/api/submit-feedback")
+def submit_feedback(feedback: DemoFeedbackSubmit, db: Session = Depends(get_db)):
+    # Decode token and get demo schedule
+    token_data = validate_feedback_token(feedback.token)
+    if not token_data:
+        return {"success": False, "message": "Invalid or expired token"}
+
+    demo_schedule_id = token_data.get("demo_schedule_id")
+    if not demo_schedule_id:
+        return {"success": False, "message": "demo_schedule_id not present in token"}
+
+    demo = db.query(LeadDemoSchedule).filter(LeadDemoSchedule.id == demo_schedule_id).first()
+    if not demo:
+        return {"success": False, "message": "Demo schedule not found"}
+
+    try:
+        new_feedback = LeadDemoFeedback(
+            lead_id=demo.lead_id,
+            user_id=demo.user_id,
+            demo_schedule_id=demo.id,
+            general_feedback=feedback.general_feedback,
+            employee_feedback=feedback.employee_feedback,
+            machine_feedback=feedback.machine_feedback,
+            status=3
+        )
+
+        db.add(new_feedback)
+        demo.feedback = feedback.general_feedback
+        demo.status = 3
+        db.commit()
+        db.refresh(new_feedback)
+
+        return {"success": True, "message": "Feedback submitted successfully", "data": {
+            "feedback_id": new_feedback.id,
+            "demo_schedule_id": new_feedback.demo_schedule_id
+        }}
+
+    except Exception as exc:
+        db.rollback()
+        # Log the exception in real app (e.g. logger.exception(exc))
+        return {"success": False, "message": "Failed to submit feedback", "error": str(exc)}

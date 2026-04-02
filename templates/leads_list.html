@@ -33,7 +33,6 @@
                         <th>Status</th>
                         <th>Date</th>
                         <th width="150">Schedule Demo</th>
-                        <th width="150">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="leadsTableBody">
@@ -226,30 +225,48 @@
                 <br> -->
                 <span class="text-info1" style="
   
-    font-size: 13.5px;">${date}</span>
+                font-size: 13.5px;">${date}</span>
+
+            <!-- 
+                <button class="btn btn-sm " style="font-size: 11.5px;
+                padding: 2px 9px;
+                /* border: 1px solid #dfcbae; */
+                margin-top: 6px;
+                background: #f7e5ac;
+                color: #7b4900;
+                border-radius: 9px;
+                font-weight: 600;">Send Feedback Link</button>
+                        </div> -->
 
 
-    <button class="btn btn-sm " style="font-size: 11.5px;
-    padding: 2px 9px;
-    /* border: 1px solid #dfcbae; */
-    margin-top: 6px;
-    background: #f7e5ac;
-    color: #7b4900;
-    border-radius: 9px;
-    font-weight: 600;">Send Feedback Link</button>
-            </div>
-        `;
+                    <button class="btn btn-sm " style="font-size: 11.5px;
+                padding: 2px 9px;
+                /* border: 1px solid #dfcbae; */
+                margin-top: 6px;
+                background: #f7e5ac;
+                color: #7b4900;
+                border-radius: 9px;
+                font-weight: 600;" onclick="sendFeedbackLink(${lead.id})">
+                        <i class="fas fa-envelope"></i> Send Feedback
+                    </button>
+
+                    `;
+
+
+
+
+
         }
 
         // Agar demo nahi hai → button show
         return `
-        <button
-            class="btn btn-sm badge-status status-completed"
-            onclick="scheduleDemo(${lead.id})"
-        >
-            Schedule
-        </button>
-    `;
+                    <button
+                        class="btn btn-sm badge-status status-completed"
+                        onclick="scheduleDemo(${lead.id})"
+                    >
+                        Schedule
+                    </button>
+                `;
     }
 
 
@@ -328,7 +345,7 @@
     Contacted
 </option>
 
-<option value="3" ${lead.lead_status == 3 ? "selected" : ""}>
+<!--<option value="3" ${lead.lead_status == 3 ? "selected" : ""}>
     Scheduled Demo
 </option>
 
@@ -339,7 +356,7 @@
 <option value="5" ${lead.lead_status == 5 ? "selected" : ""}>
     Lost
 </option>
-
+ -->
 </select>
 
 </td>
@@ -350,11 +367,7 @@
                 <td>
     ${renderDemoColumn(lead)}
 </td>
-                <td>
-                    <button class="btn btn-sm btn-outline-info" onclick="sendFeedbackLink(${lead.id})">
-                        <i class="fas fa-envelope"></i> Send Feedback
-                    </button>
-                </td>
+           
             </tr>
         `;
             tbody.innerHTML += row;
@@ -855,9 +868,7 @@
             loadLeads();
             return;
         }
-
         try {
-
             const response = await fetch(
                 `/leads/${leadId}/status`,
                 {
@@ -871,7 +882,6 @@
                     })
                 }
             );
-
             const result = await response.json();
             if (response.ok && result.success) {
                 const statusValue = parseInt(selectElement.value);
@@ -879,12 +889,10 @@
                     getStatusColor(statusValue);
                 selectElement.style.color =
                     getStatusTextColor(statusValue);
-
                 showLeadMessage(
                     "success",
                     "Status updated successfully"
                 );
-
             }
             else {
 
@@ -892,21 +900,15 @@
                     "danger",
                     result.detail || "Failed to update status"
                 );
-
                 loadLeads();
-
             }
-
         }
         catch (error) {
-
             showLeadMessage(
                 "danger",
                 "Server error while updating status"
             );
-
             loadLeads();
-
         }
     }
 
@@ -922,27 +924,31 @@
                 `/leads/send-feedback/${leadId}`,
                 {
                     method: "POST",
-                    headers: getAuthHeaders()
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...getAuthHeaders()
+                    }
                 }
             );
+            const text = await response.text();
+            let result;
+            try {
+                result = JSON.parse(text);
+            } catch (jsonErr) {
+                showLeadMessage("danger", `Invalid JSON response from server: ${jsonErr.message}`);
+                return;
+            }
 
-            const result = await response.json();
             if (response.ok && result.success) {
-                showLeadMessage(
-                    "success",
-                    "Feedback email sent successfully"
-                );
+                // showLeadMessage("success", "Feedback email sent successfully");
+                alert(result.message || "Feedback email sent successfully");
             } else {
-                showLeadMessage(
-                    "danger",
-                    result.detail || "Failed to send feedback email"
-                );
+                //showLeadMessage("danger", result.detail || "Failed to send feedback email");
+                alert(result.detail || "Failed to send feedback email");
             }
         } catch (error) {
-            showLeadMessage(
-                "danger",
-                "Server error while sending feedback email"
-            );
+            // showLeadMessage("danger", "Server error while sending feedback email");
+            alert("Server error while sending feedback email");
         }
     }
 </script>

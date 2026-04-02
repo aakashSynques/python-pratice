@@ -19,30 +19,35 @@
 #     Base.metadata.create_all(bind=engine)
 
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # app/main.py
-# from fastapi import FastAPI, Request
-# from fastapi.templating import Jinja2Templates
-# from fastapi.responses import HTMLResponse
-# from app.routes import master_users_routes
+from fastapi import FastAPI, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from app.routes import master_users_routes
 
-# from app.routes import master_role_routes
-# from app.routes import master_leads_routes
-# from app.routes import lead_shedule_demo_routes
-# from app.routes import master_client_routes
-# from app.routes import master_machine_and_part_routes
-# from app.routes import work_orders_routes
+from app.routes import master_role_routes
+from app.routes import master_leads_routes
+from app.routes import lead_shedule_demo_routes
+from app.routes import master_client_routes
+from app.routes import master_machine_and_part_routes
+from app.routes import work_orders_routes
+from app.routes import template_routes
 
-# from app.database.db import Base, engine
-# # FastAPI instance
-# app = FastAPI(title="Tea Vending ERP API", version="1.0")
-# # Include Routers
-# app.include_router(master_users_routes.router)
-# app.include_router(master_role_routes.router)
-# app.include_router(master_leads_routes.router)
-# app.include_router(lead_shedule_demo_routes.router)
-# app.include_router(master_client_routes.router)
-# app.include_router(master_machine_and_part_routes.router)
-# app.include_router(work_orders_routes.router)
+from app.database.db import Base, engine
+# FastAPI instance
+app = FastAPI(title="Tea Vending ERP API", version="1.0")
+# Include Routers
+app.include_router(master_users_routes.router)
+app.include_router(master_role_routes.router)
+app.include_router(master_leads_routes.router)
+app.include_router(lead_shedule_demo_routes.router)
+app.include_router(master_client_routes.router)
+app.include_router(master_machine_and_part_routes.router)
+app.include_router(work_orders_routes.router)
+app.include_router(template_routes.router)
 
 
 

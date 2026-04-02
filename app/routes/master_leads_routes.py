@@ -16,7 +16,7 @@ from app.schemas.leads_schemas import (
     APIResponse
 )
 from app.auth import get_current_user
-from app.utils import generate_feedback_token, send_feedback_email
+from app.utils import send_feedback_link_for_lead
 
 router = APIRouter(
     prefix="/leads",
@@ -132,7 +132,8 @@ def get_all_leads(
                 "user_id": demo.user_id,
                 "scheduled_date": demo.scheduled_date,
                 "feedback": demo.feedback,
-                "status": demo.status
+                "status": demo.status,
+                "feedback_email_send_status": demo.feedback_email_send_status
             })
 
     return list(leads_dict.values())
@@ -340,23 +341,51 @@ def send_feedback_link(
                 detail="Lead does not have an email address"
             )
 
-        # Generate encrypted token
-        token = generate_feedback_token(lead.id, lead.email)
+        # Find latest demo schedule for this lead (if any)
+        latest_demo = db.query(LeadDemoSchedule).filter(
+            LeadDemoSchedule.lead_id == lead_id
+        ).order_by(LeadDemoSchedule.id.desc()).first()
 
-        # Generate feedback URL
-        feedback_url = f"http://localhost:8000/feedback/{token}"
+        # Use helper function to generate token and send email
+        if not latest_demo:
+            raise HTTPException(
+                status_code=400,
+                detail="No demo schedule found for this lead"
+            )
 
-        # Send email
-        email_sent = send_feedback_email(lead.email, lead.name, feedback_url)
-        if not email_sent:
+        result = send_feedback_link_for_lead(
+            demo_schedule_id=latest_demo.id,
+            lead_email=lead.email,
+            lead_name=lead.name
+        )
+
+        if not result.get("success"):
             raise HTTPException(
                 status_code=500,
-                detail="Failed to send email"
+                detail=result.get("message", "Failed to send email")
             )
+
+        # Update feedback_email_send_status counter in the latest demo
+        # latest_demo is already fetched above
+
+
+        if latest_demo:
+            if latest_demo.feedback_email_send_status is None:
+                latest_demo.feedback_email_send_status = 1
+            else:
+                latest_demo.feedback_email_send_status += 1
+            latest_demo.updated_at = datetime.utcnow()
+            db.commit()
+            db.refresh(latest_demo)
 
         return APIResponse(
             success=True,
-            message="Feedback email sent successfully"
+            status=200,
+            message=result.get("message", "Feedback email sent successfully"),
+            data={
+                "feedback_url": result.get("feedback_url"),
+                "email_send_count": latest_demo.feedback_email_send_status if latest_demo else 0
+            }
         )
 
     except HTTPException:
@@ -367,3 +396,9 @@ def send_feedback_link(
             status_code=500,
             detail=f"Failed to send feedback email: {str(e)}"
         )
+
+#     except Exception as e:
+#         raise HTTPException(
+#             status_code=500,
+#             detail=f"Failed to send feedback email: {str(e)}"
+#         )

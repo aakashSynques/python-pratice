@@ -3,15 +3,25 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from typing import List
 
+from starlette import status
+from app.utils import send_feedback_link_for_lead
+
 from app.database.db import get_db
 from app.models.master_leads import MasterLead
 from app.models.master_users import MasterUser
 from app.models.lead_demo_schedule import LeadDemoSchedule
+from app.models.demo_feedback_model import LeadDemoFeedback
 
 from app.schemas.lead_demo_schemas import (
     ScheduleDemoCreate,
     DemoFeedbackUpdate,
-    DemoResponse
+    DemoResponse,
+    DemoFeedbackResponse
+)
+
+
+from app.schemas.leads_schemas import (
+    APIResponse
 )
 
 from app.auth import get_current_user
@@ -27,24 +37,84 @@ router = APIRouter(
 # GET ALL DEMO SCHEDULES
 # ===================================================
 
+# @router.get(
+#     "/demo/all",
+#     response_model=List[DemoResponse]
+# )
+# def get_all_demo_leads(
+#     db: Session = Depends(get_db),
+#     current_user: MasterUser = Depends(get_current_user)
+# ):
+
+#     demos = db.query(
+#         LeadDemoSchedule
+#     ).order_by(
+#         LeadDemoSchedule.id.asc()
+#     ).all()
+
+#     return demos
 @router.get(
     "/demo/all",
-    response_model=List[DemoResponse]
+    response_model=List[DemoFeedbackResponse]
 )
 def get_all_demo_leads(
     db: Session = Depends(get_db),
     current_user: MasterUser = Depends(get_current_user)
 ):
 
-    demos = db.query(
+    schedules = db.query(
         LeadDemoSchedule
     ).order_by(
         LeadDemoSchedule.id.asc()
     ).all()
 
-    return demos
+
+    response = []
+
+    for schedule in schedules:
+
+        # Get Lead
+        lead = db.query(
+            MasterLead
+        ).filter(
+            MasterLead.id ==
+            schedule.lead_id
+        ).first()
+
+        # Get User
+        user = db.query(
+            MasterUser
+        ).filter(
+            MasterUser.id ==
+            schedule.user_id
+        ).first()
+
+        # Get Feedback
+        feedback = db.query(
+            LeadDemoFeedback
+        ).filter(
+            LeadDemoFeedback.demo_schedule_id ==
+            schedule.id
+        ).first()
 
 
+        response.append({
+
+            "id": schedule.id,
+            "lead_id": schedule.lead_id,
+            "user_id": schedule.user_id,
+            "scheduled_date": schedule.scheduled_date,
+            "feedback_email_send_status":
+                schedule.feedback_email_send_status,
+
+            "lead": lead,
+            "user": user,
+            "feedback": feedback
+
+        })
+
+
+    return response
 
 # ===================================================
 # GET SINGLE DEMO BY ID (Optional but useful)
@@ -140,18 +210,9 @@ def schedule_demo(
     return new_demo
 
 
-
-# ===================================================
-# UPDATE DEMO FEEDBACK
-# ===================================================
-
-@router.put(
-    "/demo-feedback/{demo_id}",
-    response_model=DemoResponse
-)
-def update_demo_feedback(
+@router.post("/send-feedback-email/{demo_id}")
+def send_feedback_email(
     demo_id: int,
-    feedback_data: DemoFeedbackUpdate,
     db: Session = Depends(get_db),
     current_user: MasterUser = Depends(get_current_user)
 ):
@@ -167,50 +228,43 @@ def update_demo_feedback(
             status_code=404,
             detail="Demo not found"
         )
-   # Update Feedback
-    demo.feedback = feedback_data.feedback
-    demo.status = feedback_data.status
-    demo.updated_at = datetime.utcnow()
-    # Update Lead Status if Completed
+
+    # Get Lead Email
     lead = db.query(
         MasterLead
     ).filter(
         MasterLead.id == demo.lead_id
     ).first()
-    if lead and feedback_data.status == 3:
-        lead.status = 3
-    db.commit()
-    db.refresh(demo)
-    return demo
 
-
-
-# ===================================================
-# DELETE DEMO (Optional but recommended)
-# ===================================================
-
-@router.delete("/demo/{demo_id}")
-def delete_demo(
-    demo_id: int,
-    db: Session = Depends(get_db),
-    current_user: MasterUser = Depends(get_current_user)
-):
-
-    demo = db.query(
-        LeadDemoSchedule
-    ).filter(
-        LeadDemoSchedule.id == demo_id
-    ).first()
-
-    if not demo:
+    if not lead:
         raise HTTPException(
             status_code=404,
-            detail="Demo not found"
+            detail="Lead not found"
         )
 
-    db.delete(demo)
+    # ✅ Send Email
+    send_feedback_link_for_lead(
+        demo_schedule_id=demo.id,
+        lead_email=lead.email,
+        lead_name=lead.name
+    )
+
+    # ✅ Increment Counter
+    if demo.feedback_email_send_status is None:
+        demo.feedback_email_send_status = 1
+    else:
+        demo.feedback_email_send_status += 1
+
+    demo.updated_at = datetime.utcnow()
+
     db.commit()
+    db.refresh(demo)
 
     return {
-        "message": "Demo deleted successfully"
+        "message": "Feedback email sent successfully",
+        "email_send_count": demo.feedback_email_send_status
     }
+
+
+
+# *** NOTE: send-feedback endpoint is now handled in master_leads_routes.py to avoid duplicate route conflicts ***

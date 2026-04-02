@@ -1,64 +1,399 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedback Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f4f6f9;
+        }
+
+        .feedback-card {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+        }
+
+        .section-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #0d6efd;
+        }
+
+        .list-group-item {
+            border: none;
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        .rating-stars {
+            display: flex;
+            gap: 10px;
+        }
+
+        .rating-stars input {
+            display: none;
+        }
+
+        .rating-stars label {
+            font-size: 28px;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+        .rating-stars input:checked~label {
+            color: #ffc107;
+        }
+
+        .rating-stars label:hover,
+        .rating-stars label:hover~label {
+            color: #ffc107;
+        }
+
+        .submit-btn {
+            padding: 10px 28px;
+            font-size: 16px;
+            border-radius: 8px;
+        }
+    </style>
 </head>
+
 <body>
-    <div class="container mt-5">
+
+    <div class="container py-5">
         <div class="row justify-content-center">
-            <div class="col-md-8">
+            <div class="col-lg-10">
+
                 {% if error %}
-                <div class="alert alert-danger" role="alert">
+
+                <div class="alert alert-danger text-center">
                     {{ error }}
                 </div>
-                {% else %}
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Hello {{ lead_name }}!</h2>
-                        <p>Please provide your feedback below.</p>
-                    </div>
-                    <div class="card-body">
-                        <h5>Lead Details:</h5>
-                        <ul class="list-group list-group-flush mb-4">
-                            <li class="list-group-item"><strong>Name:</strong> {{ lead_name }}</li>
-                            <li class="list-group-item"><strong>Email:</strong> {{ lead_email }}</li>
-                            <li class="list-group-item"><strong>Phone:</strong> {{ lead_phone or 'N/A' }}</li>
-                            <li class="list-group-item"><strong>Address:</strong> {{ lead_address or 'N/A' }}</li>
-                            <li class="list-group-item"><strong>Item Name:</strong> {{ lead_item_name or 'N/A' }}</li>
-                            <li class="list-group-item"><strong>Source:</strong> {{ lead_source or 'N/A' }}</li>
-                            <li class="list-group-item"><strong>Status:</strong>
-                                {% if lead_status == 1 %}New{% elif lead_status == 2 %}Contacted{% elif lead_status == 3 %}Demo Scheduled{% elif lead_status == 4 %}Converted{% else %}Unknown{% endif %}
-                            </li>
-                        </ul>
 
-                        <form>
-                            <div class="mb-3">
-                                <label for="feedback" class="form-label">Your Feedback</label>
-                                <textarea class="form-control" id="feedback" rows="5" placeholder="Please share your feedback..."></textarea>
+                {% else %}
+
+                <div class="card feedback-card">
+
+                    <!-- HEADER -->
+
+                    <div class="card-header text-white p-4">
+
+                        <h3 class="mb-1">
+                            Hello <span id="header-lead-name">
+                                {{ lead_name | default('Guest') }}
+                            </span> 👋
+                        </h3>
+
+                        <p class="mb-0">
+                            Email:
+                            <strong>
+                                <span id="header-lead-email">
+                                    {{ lead_email | default('N/A') }}
+                                </span>
+                            </strong>
+                        </p>
+
+                        <p class="mt-2 mb-0">
+                            Please share your valuable feedback about the demo.
+                        </p>
+
+                    </div>
+
+                    <!-- BODY -->
+
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h6 class="section-title">Lead Information</h6>
+                                <ul class="list-group mb-4">
+                                    <!-- <li class="list-group-item">
+                                            <strong>Name:</strong>
+                                            <span id="lead-name">{{ lead_name }}</span>
+                                        </li> -->
+                                    <!-- <li class="list-group-item">
+                                            <strong>Email:</strong>
+                                            <span id="lead-email">{{ lead_email }}</span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Phone:</strong>
+                                            <span id="lead-phone">
+                                                {{ lead_phone or 'N/A' }}
+                                            </span>
+                                        </li>
+                                        <li class="list-group-item">
+                                            <strong>Address:</strong>
+                                            <span id="lead-address">
+                                                {{ lead_address or 'N/A' }}
+                                            </span>
+                                        </li> -->
+                                    <li class="list-group-item">
+                                        <strong>Machine:</strong>
+                                        <span id="lead-item-name">
+                                            {{ lead_item_name or 'N/A' }}
+                                        </span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <strong>Scheduled Date:</strong>
+                                        <span id="demo-scheduled-date">
+                                            Loading...
+                                        </span>
+                                    </li>
+
+                                </ul>
                             </div>
-                            <div class="mb-3">
-                                <label for="rating" class="form-label">Rating (1-5)</label>
-                                <select class="form-select" id="rating">
-                                    <option value="">Select rating</option>
-                                    <option value="1">1 - Poor</option>
-                                    <option value="2">2 - Fair</option>
-                                    <option value="3">3 - Good</option>
-                                    <option value="4">4 - Very Good</option>
-                                    <option value="5">5 - Excellent</option>
-                                </select>
+                            <div class="col-sm-6">
+                                <h6 class="section-title">
+                                    Employee Information
+                                </h6>
+
+                                <ul class="list-group mb-4">
+
+                                    <li class="list-group-item">
+                                        <strong>Name:</strong>
+                                        <span id="user-name">
+                                            Loading...
+                                        </span>
+                                    </li>
+
+                                    <li class="list-group-item">
+                                        <strong>Email:</strong>
+                                        <span id="user-email">
+                                            Loading...
+                                        </span>
+                                    </li>
+
+                                    <li class="list-group-item">
+                                        <strong>Phone:</strong>
+                                        <span id="user-phone">
+                                            Loading...
+                                        </span>
+                                    </li>
+
+                                </ul>
                             </div>
-                            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+                        </div>
+
+
+
+                        <!-- Demo Info -->
+
+
+
+
+                        <!-- <hr> -->
+
+                        <!-- Feedback Form -->
+
+                        <h5 class="section-title">
+                            Your Feedback
+                        </h5>
+
+                        <div id="feedback-success-message" class="alert alert-success d-none" role="alert">
+                            Thank you for your feedback! Your response has been submitted successfully.
+                        </div>
+
+                        <form id="feedback-form">
+
+                            <!-- General Feedback -->
+
+                            <div class="mb-3">
+                                <!-- 
+                                <label class="form-label">
+                                    General Feedback
+                                </label> -->
+
+                                <textarea class="form-control" id="feedback" name="feedback" rows="3" required
+                                    placeholder="Share your overall experience about the demo..."></textarea>
+
+                            </div>
+
+                            <!-- Employee Feedback -->
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Rate the
+                                    <strong id="employee-name">
+                                        Demo Lead
+                                    </strong>
+                                </label>
+
+                                <div class="rating-stars">
+                                    <input type="radio" id="employee-rating-1" name="employee_rating" value="1">
+                                    <label for="employee-rating-1">★</label>
+                                    <input type="radio" id="employee-rating-2" name="employee_rating" value="2">
+                                    <label for="employee-rating-2">★</label>
+                                    <input type="radio" id="employee-rating-3" name="employee_rating" value="3">
+                                    <label for="employee-rating-3">★</label>
+                                    <input type="radio" id="employee-rating-4" name="employee_rating" value="4">
+                                    <label for="employee-rating-4">★</label>
+                                    <input type="radio" id="employee-rating-5" name="employee_rating" value="5">
+                                    <label for="employee-rating-5">★</label>
+                                </div>
+
+                            </div>
+
+                            <!-- Machine Feedback -->
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+                                    Rate the Product/Machine
+                                </label>
+
+                                <div class="rating-stars">
+                                    <input type="radio" id="machine-rating-1" name="machine_rating" value="1">
+                                    <label for="machine-rating-1">★</label>
+                                    <input type="radio" id="machine-rating-2" name="machine_rating" value="2">
+                                    <label for="machine-rating-2">★</label>
+                                    <input type="radio" id="machine-rating-3" name="machine_rating" value="3">
+                                    <label for="machine-rating-3">★</label>
+                                    <input type="radio" id="machine-rating-4" name="machine_rating" value="4">
+                                    <label for="machine-rating-4">★</label>
+                                    <input type="radio" id="machine-rating-5" name="machine_rating" value="5">
+                                    <label for="machine-rating-5">★</label>
+                                </div>
+                            </div>
+
+
+                            <!-- Buttons -->
+
+                            <div class="text-end">
+
+                                <button type="reset" class="btn btn-outline-secondary me-2 submit-btn">
+                                    Clear
+                                </button>
+
+                                <button type="submit" class="btn btn-primary submit-btn">
+                                    Submit Feedback
+                                </button>
+
+                            </div>
+
                         </form>
+
                     </div>
                 </div>
+
                 {% endif %}
+
             </div>
         </div>
     </div>
 
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        async function loadFeedbackData() {
+            const pathParts = window.location.pathname.split('/');
+            const token = pathParts[pathParts.length - 1];
+            if (!token) return;
+
+            try {
+                const response = await fetch(`/api/feedback-data/${encodeURIComponent(token)}`);
+                const result = await response.json();
+
+                if (!result.success) {
+                    alert('Error: ' + (result.message || 'Failed to load data'));
+                    return;
+                }
+
+                const { demo, lead, user } = result.data;
+
+                if (lead) {
+                    // document.getElementById('lead-name').innerText = lead.name || '';
+                    // document.getElementById('lead-email').innerText = lead.email || '';
+                    document.getElementById('header-lead-name').innerText = lead.name || 'Guest';
+                    document.getElementById('header-lead-email').innerText = lead.email || 'N/A';
+                    // document.getElementById('lead-phone').innerText = lead.phone || 'N/A';
+                    // document.getElementById('lead-address').innerText = lead.address || 'N/A';
+                    document.getElementById('lead-item-name').innerText = lead.item_name || 'N/A';
+                }
+
+                if (demo) {
+                    // document.getElementById('demo-id').innerText = demo.id;
+                    document.getElementById('demo-scheduled-date').innerText = demo.scheduled_date ? new Date(demo.scheduled_date).toLocaleString() : 'N/A';
+                    // const demoStatus = demo.status === 1 ? 'Scheduled' : demo.status === 2 ? 'In Progress' : demo.status === 3 ? 'Completed' : 'Unknown';
+                    // document.getElementById('demo-status').innerText = demoStatus;
+                    // document.getElementById('demo-email-count').innerText = demo.feedback_email_send_status || 0;
+                }
+
+                if (user) {
+                    document.getElementById('user-name').innerText = user.name || 'N/A';
+                    document.getElementById('user-email').innerText = user.email || 'N/A';
+                    document.getElementById('user-phone').innerText = user.phone || 'N/A';
+                    // document.getElementById('user-role').innerText = user.role || 'N/A';
+
+                    // Update employee feedback label with user's name
+                    const employeeLabel = document.getElementById('employee-name');
+                    if (user.name) {
+                        employeeLabel.innerText = user.name;
+                    }
+                }
+            } catch (error) {
+                console.error('Feedback API call failed:', error);
+                alert('Failed to load demo data: ' + error.message);
+            }
+        }
+
+        document.getElementById('feedback-form').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const token = window.location.pathname.split('/').pop();
+
+            // Get form data
+            const generalFeedback = document.getElementById('feedback').value.trim();
+            const employeeRating = parseInt(document.querySelector('input[name="employee_rating"]:checked')?.value) || null;
+            const machineRating = parseInt(document.querySelector('input[name="machine_rating"]:checked')?.value) || null;
+
+            // Validation: Ensure at least one field is filled
+            if (!generalFeedback && !employeeRating && !machineRating) {
+                alert('Please provide general feedback or at least one star rating.');
+                return;
+            }
+
+            const payload = {
+                token,
+                general_feedback: generalFeedback || null,
+                employee_feedback: employeeRating,
+                machine_feedback: machineRating
+            };
+            try {
+                const res = await fetch('/api/submit-feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await res.json();
+                if (result.success) {
+                    // Hide form and show thank-you notice
+                    document.getElementById('feedback-form').classList.add('d-none');
+                    const successMsg = document.getElementById('feedback-success-message');
+                    successMsg.classList.remove('d-none');
+                    successMsg.innerText = 'Thank you for your feedback! Your response has been submitted successfully.';
+
+                    // optional: clear data for screen readers / follow-ups
+                    document.getElementById('feedback-form').reset();
+                } else {
+                    alert('Submit failed: ' + (result.message || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Submit failed: ' + error.message);
+            }
+        });
+
+        loadFeedbackData();
+    </script>
 </body>
+
 </html>
