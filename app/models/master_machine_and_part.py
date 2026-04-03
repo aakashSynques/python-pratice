@@ -50,51 +50,17 @@ from app.database.db import Base
 class MasterMachines(Base):
     __tablename__ = "master_machines"
     __table_args__ = {"extend_existing": True}
-
     id = Column(Integer, primary_key=True, index=True)
-
-    name = Column(
-        String(100),
-        nullable=False,
-        comment="Machine name / model"
-    )
-
-    machine_code = Column(
-        String(50),
-        unique=True,
-        nullable=False,
-        comment="Unique code / serial number"
-    )
-
-    type = Column(
-        String(50),
-        nullable=True,
-        comment="Category / type of machine"
-    )
-
-    status = Column(
-        Integer,
-        default=1,
-        comment="1=available, 0=unavailable"
-    )
-
-    is_active = Column(
-        Integer,
-        default=1,
-        comment="1=active, 0=inactive"
-    )
-
-    created_at = Column(
-        DateTime,
-        default=datetime.utcnow
-    )
-
-    updated_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-        onupdate=datetime.utcnow
-    )
-
+    name = Column(String(100),nullable=False,comment="Machine name / model")
+    machine_code = Column(String(50),unique=True,nullable=False,comment="Unique code / serial number")
+    type = Column(String(50),nullable=True,comment="Tea , Coffee , Juice etc")
+    capicity = Column(String(50), nullable=True, comment="Ex: 10L 20L etc")
+    brand_name = Column(String(50), nullable=True,)
+    description = Column(String(255), nullable=True, )
+    status = Column(Integer,default=1,comment="1=available, 0=unavailable")
+    is_active = Column(Integer, default=1, comment="1=active, 0=inactive" )
+    created_at = Column(DateTime,default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow )
     # Relationship: Machine -> Parts
     parts = relationship(
         "MasterMachineParts",

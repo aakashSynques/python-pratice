@@ -10,5 +10,6 @@ class LeadDemoSchedule(Base):
     feedback = Column(Text, nullable=True)
     feedback_email_send_status = Column(Integer, default=0, comment="0=Not Sent, 1=Sent, counter")
     status = Column(Integer, default=1, comment="1=Scheduled, 2=Process, 3=Completed")
+    lead_convert_status = Column(Integer, default=0, comment="0=not converted, 1=converted")
     created_at = Column( DateTime, default=datetime.utcnow )
     updated_at = Column( DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

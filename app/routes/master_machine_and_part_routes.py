@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -41,19 +42,57 @@ def get_all_machines(db: Session = Depends(get_db)):
     return machines
 
 
+# @router.post("/add-machines")
+# def create_machine(machine: MachineCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
+#     new_machine = MasterMachines(**machine.dict())
+#     db.add(new_machine)
+#     db.commit()
+#     db.refresh(new_machine)
+#     return {
+#         "status": "success",
+#         "message": "Machine added successfully",
+#         "data": new_machine
+#     }
 @router.post("/add-machines")
-def create_machine(machine: MachineCreate, db: Session = Depends(get_db), user=Depends(get_current_user)):
-    new_machine = MasterMachines(**machine.dict())
-    db.add(new_machine)
-    db.commit()
-    db.refresh(new_machine)
-    return {
-        "status": "success",
-        "message": "Machine added successfully",
-        "data": new_machine
-    }
+def create_machine(
+    machine: MachineCreate,
+    db: Session = Depends(get_db),
+    user=Depends(get_current_user)
+):
 
+    try:
 
+        # Check duplicate first
+        existing_machine = db.query(MasterMachines).filter(
+            MasterMachines.machine_code == machine.machine_code
+        ).first()
+
+        if existing_machine:
+            return {
+                "success": False,
+                "message": "Machine code already exists"
+            }
+
+        new_machine = MasterMachines(**machine.dict())
+
+        db.add(new_machine)
+        db.commit()
+        db.refresh(new_machine)
+
+        return {
+            "success": True,
+            "message": "Machine added successfully",
+            "data": new_machine
+        }
+
+    except Exception as e:
+
+        db.rollback()
+
+        return {
+            "success": False,
+            "message": str(e)
+        }
 
 
 @router.get("/{machine_id}", response_model=MachineResponse)
@@ -75,22 +114,75 @@ def get_machine(machine_id: int, db: Session = Depends(get_db)):
 #     return db_machine
 
 @router.put("/{machine_id}", response_model=MachineResponseWithMessage)
-def update_machine(machine_id: int, machine: MachineUpdate, db: Session = Depends(get_db)):
-    db_machine = db.query(MasterMachines).filter(MasterMachines.id == machine_id).first()
+def update_machine(
+    machine_id: int,
+    machine: MachineUpdate,
+    db: Session = Depends(get_db)
+):
+    db_machine = db.query(MasterMachines).filter(
+        MasterMachines.id == machine_id
+    ).first()
     if not db_machine:
-        raise HTTPException(status_code=404, detail="Machine not found")
+        raise HTTPException(
+            status_code=404,
+            detail="Machine not found"
+        )
+    try:
+        if machine.machine_code:
+            existing_machine = db.query(MasterMachines).filter(
+                MasterMachines.machine_code == machine.machine_code,
+                MasterMachines.id != machine_id   
+            ).first()
+            if existing_machine:
+                return {
+                    "status": "error",
+                    "message": "Machine code already exists",
+                    "data": None
+                }
+        for key, value in machine.dict(
+            exclude_unset=True
+        ).items():
+            setattr(db_machine, key, value)
+        db.commit()
+        db.refresh(db_machine)
+        return {
+            "status": "success",
+            "message": "Machine updated successfully",
+            "data": db_machine
+        }
+    except IntegrityError:
+        db.rollback()
+        return {
+            "status": "error",
+            "message": "Machine code already exists",
+            "data": None
+        }
+    except Exception as e:
+        db.rollback()
+        return {
+            "status": "error",
+            "message": str(e),
+            "data": None
+        }
+
+
+
+# @router.put("/{machine_id}", response_model=MachineResponseWithMessage)
+# def update_machine(machine_id: int, machine: MachineUpdate, db: Session = Depends(get_db)):
+#     db_machine = db.query(MasterMachines).filter(MasterMachines.id == machine_id).first()
+#     if not db_machine:
+#         raise HTTPException(status_code=404, detail="Machine not found")    
+#     for key, value in machine.dict(exclude_unset=True).items():
+#         setattr(db_machine, key, value)
     
-    for key, value in machine.dict(exclude_unset=True).items():
-        setattr(db_machine, key, value)
+#     db.commit()
+#     db.refresh(db_machine)
     
-    db.commit()
-    db.refresh(db_machine)
-    
-    return {
-        "status": "success",
-        "message": "Machine updated successfully",
-        "data": db_machine
-    }
+#     return {
+#         "status": "success",
+#         "message": "Machine updated successfully",
+#         "data": db_machine
+#     }
 
 
 

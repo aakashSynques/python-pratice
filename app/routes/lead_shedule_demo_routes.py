@@ -104,8 +104,8 @@ def get_all_demo_leads(
             "lead_id": schedule.lead_id,
             "user_id": schedule.user_id,
             "scheduled_date": schedule.scheduled_date,
-            "feedback_email_send_status":
-                schedule.feedback_email_send_status,
+            "feedback_email_send_status": schedule.feedback_email_send_status,
+            "lead_convert_status": schedule.lead_convert_status,
 
             "lead": lead,
             "user": user,

@@ -92,10 +92,7 @@ class MasterClient(Base):
 
     contact_mobile = Column(String(20), nullable=True)
 
-    status = Column(
-        String(50),
-        default="active"
-    )
+    client_status = Column( Integer, default=0, comment="0=active, 1=inactive" )
 
     created_at = Column(
         DateTime,

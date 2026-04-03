@@ -7,19 +7,26 @@ class MachineCreate(BaseModel):
     name: str
     machine_code: str
     type: Optional[str] = None
+    capicity: Optional[str] = None
+    brand_name: Optional[str] = None
+    description: Optional[str] = None
 
 class MachineUpdate(BaseModel):
     name: Optional[str] = None
     machine_code: Optional[str] = None
     type: Optional[str] = None
-    status: Optional[int] = None
-    is_active: Optional[int] = None
+    capicity: Optional[str] = None
+    brand_name: Optional[str] = None
+    description: Optional[str] = None
 
 class MachineResponse(BaseModel):
     id: int
     name: str
     machine_code: str
     type: Optional[str]
+    capicity: Optional[str]
+    brand_name: Optional[str]
+    description: Optional[str]
     status: int
     is_active: int
     created_at: datetime

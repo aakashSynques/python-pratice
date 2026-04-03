@@ -98,6 +98,7 @@ class DemoFeedbackResponse(BaseModel):
     user_id: int
     scheduled_date: datetime
     feedback_email_send_status: Optional[int]
+    lead_convert_status: Optional[int]
 
     lead: Optional[LeadSchema]
     user: Optional[UserSchema]

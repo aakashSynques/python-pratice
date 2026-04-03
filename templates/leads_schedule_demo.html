@@ -5,11 +5,8 @@
 {% block page_description %}
 Manage all scheduled demos and feedback status
 {% endblock %}
-
 {% block content %}
-
 <div class="card p-2">
-
     <div class="card-header">
         <div class="row">
             <div class="col-md-6">
@@ -17,13 +14,9 @@ Manage all scheduled demos and feedback status
             </div>
         </div>
     </div>
-
     <div class="card-body" style="padding:8px 0 0;">
-
         <div class="table-responsive">
-
             <table class="table table-hover table-bordered align-middle" id="leadsTable" style="width:100%">
-
                 <thead class="table-secondary">
                     <tr>
                         <th>SNo</th>
@@ -32,278 +25,160 @@ Manage all scheduled demos and feedback status
                         <th>Scheduled Date</th>
                         <th>Email Status</th>
                         <th>Feedback</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
-
                 <tbody id="leadsTableBody">
                 </tbody>
-
             </table>
-
         </div>
-
     </div>
-
 </div>
-
 {% endblock %}
-
 {% block scripts %}
-
 <script>
-
     let leadsTable;
-
-
-
-    // =============================
-    // Load Demo Leads
-    // =============================
-
     async function loadLeads() {
-
         try {
-
             const response = await fetch(
                 '/leads/demo/all',
                 {
                     headers: getAuthHeaders()
                 }
             );
-
             if (response.ok) {
-
                 const data = await response.json();
-
                 renderLeadsTable(data);
-
             }
-
             else {
-
                 handleApiError({
                     status: response.status,
                     message: 'Failed to load demo leads'
                 });
-
             }
-
         }
-
         catch (error) {
-
-            console.error(error);
-
             alert('Failed to load demo leads');
-
         }
-
     }
-
-
-
-    // =============================
-    // Render Table
-    // =============================
-
     function renderLeadsTable(data) {
-
         if ($.fn.DataTable.isDataTable('#leadsTable')) {
-
             $('#leadsTable')
                 .DataTable()
                 .destroy();
-
         }
-
-        const tbody =
-            document.getElementById('leadsTableBody');
-
+        const tbody = document.getElementById('leadsTableBody');
         tbody.innerHTML = '';
-
-
-
         data.forEach((demo, index) => {
-
-            // =========================
-            // Lead Details
-            // =========================
-
             let leadDetails = `
             <b>Name:</b> ${demo.lead?.name || '-'} <br>
             <b>Email:</b> ${demo.lead?.email || '-'} <br>
             <b>Phone:</b> ${demo.lead?.phone || '-'}
         `;
-
-
-
-            // =========================
             // User Details
-            // =========================
-
             let userDetails = `
             <b>Name:</b> ${demo.user?.name || '-'} <br>
             <b>Email:</b> ${demo.user?.email || '-'}
         `;
-
-
-
-            // =========================
             // Feedback Details
-            // =========================
-
             let feedbackDetails;
-
             if (demo.feedback) {
-
                 feedbackDetails = `
-
                 <b>General:</b>
                 ${demo.feedback.general_feedback || '-'} <br>
-
                 <b>Employee:</b>
                 ${getRatingStars(
                     demo.feedback.employee_feedback
                 )} <br>
-
                 <b>Machine:</b>
                 ${getRatingStars(
                     demo.feedback.machine_feedback
                 )}
-
             `;
-
             }
-
             else {
-
                 feedbackDetails = `
                 <span class="text-muted">
                     No Feedback Yet
                 </span>
             `;
-
             }
-
-
-
-            // =========================
             // Email Status Badge
-            // =========================
-
             const emailStatus =
                 getEmailStatusBadge(
                     demo.feedback_email_send_status
                 );
-
-
-
-            // =========================
-            // Feedback Button
-            // =========================
-
+            // Feedback Button         
             // const feedbackBtn =
             //     getFeedbackButton(demo);
-
-
-
             const row = `
-
-        <tr>
-
-            <td>${index + 1}</td>
-
-            <td>${leadDetails}</td>
-
-            <td>${userDetails}</td>
-
-                    <td>${demo.scheduled_date}</td>
-
-
-            <td>${emailStatus}</td>
-
-            <td>
-                ${feedbackDetails}
-                
-        
-
-            </td>
-
-        </tr>
-
+            <tr>
+                <td>${index + 1}</td>
+                <td>${leadDetails}</td>
+                <td>${userDetails}</td>
+                <td>${demo.scheduled_date}</td>
+                <td>${emailStatus}</td>
+                <td>${feedbackDetails}</td>
+                <td>
+                    ${demo.lead_convert_status == 0 ? `
+                        <button 
+                            class="badge btn btn-sm btn-info mt-1"
+                            onclick="convertLead(${demo.lead?.id})"
+                            style="padding: 5px 9px; font-size: 12px;"
+                        >
+                            Convert
+                        </button>
+                    `
+                    : `
+                        <span class="badge btn btn-sm bg-success"  style="padding: 5px 9px; font-size: 12px;">
+                            Converted
+                        </span>
+                    `}    
+                </td>
+            </tr>
         `;
-
             tbody.innerHTML += row;
-
         });
-
         initializeDataTable();
-
     }
-
-
-
-    // =============================
     // Rating Stars
-    // =============================
-
     function getRatingStars(rating) {
-
         if (!rating) return '-';
-
         let stars = '';
-
         for (let i = 1; i <= 5; i++) {
-
             if (i <= rating) {
                 stars += '⭐';
             }
             else {
                 stars += '☆';
             }
-
         }
-
         return stars;
     }
-
-
-
-    // =============================
     // Email Status Badge
-    // =============================
-
-function getEmailStatusBadge(feedback_email_send_status) {
-
-    if (feedback_email_send_status == 0) {
-        return `
+    function getEmailStatusBadge(feedback_email_send_status) {
+        if (feedback_email_send_status == 0) {
+            return `
             <span class="badge bg-secondary">
                 Pending
             </span>
         `;
-    }
+        }
+        let badgeClass = feedback_email_send_status > 1
+            ? "bg-warning text-dark"
+            : "bg-success";
 
-    let badgeClass = feedback_email_send_status > 1 
-        ? "bg-warning text-dark"
-        : "bg-success";
-
-    return `
+        return `
         <span class="badge ${badgeClass}">
             Sent (${feedback_email_send_status})
         </span>
     `;
-}
-
-
-
+    }
     // =============================
     // Feedback Button
     // =============================
-
     // function getFeedbackButton(demo) {
-
     //     if (demo.feedback_email_send_status == 1) {
-
     //         return `
     //         <button
     //             class="btn btn-sm btn-primary mt-1"
@@ -312,122 +187,124 @@ function getEmailStatusBadge(feedback_email_send_status) {
     //             View Feedback
     //         </button>
     //     `;
-
     //     }
-
     //     return `
     //     <span class="text-muted">
     //         Not Available
     //     </span>
     // `;
-
     // }
 
-
-
-    // =============================
     // View Feedback
-    // =============================
-
     function viewFeedback(demoId) {
 
         window.location.href =
             `/feedback/${demoId}`;
-
     }
-
-
-
-    // =============================
     // Initialize DataTable
-    // =============================
-
     function initializeDataTable() {
-
         leadsTable =
             $('#leadsTable').DataTable({
-
                 responsive: true,
-
                 pageLength: 10,
-
                 lengthMenu: [10, 25, 50, 100],
-
                 order: [[0, "asc"]],
-
-
-
                 dom:
                     "<'row mb-1'" +
                     "<'col-md-6 d-flex align-items-center'B>" +
                     "<'col-md-6 d-flex justify-content-end'f>" +
                     ">" +
-
                     "<'row'<'col-12'tr>>" +
-
                     "<'row mt-2'" +
                     "<'col-md-6'i>" +
                     "<'col-md-6'p>" +
                     ">",
-
-
-
                 buttons: [
-
                     {
                         extend: 'copy',
                         className: 'btn btn-sm btn-secondary'
                     },
-
                     {
                         extend: 'csv',
                         className: 'btn btn-sm btn-secondary'
                     },
-
                     {
                         extend: 'excel',
                         className: 'btn btn-sm btn-secondary'
                     },
-
                     {
                         extend: 'pdf',
                         className: 'btn btn-sm btn-secondary'
                     },
-
                     {
                         extend: 'print',
                         className: 'btn btn-sm btn-secondary'
                     }
-
                 ],
-
-
-
                 columnDefs: [
-
                     {
                         targets: -1,
                         orderable: false
                     }
-
                 ]
-
             });
+    }
+    // Page Load
+    $(document).ready(function () {
+        loadLeads();
+    });
+</script>
+
+
+<script>
+
+
+
+    // =============================
+    // Convert Lead → Client API
+    // =============================
+    async function convertLead(leadId) {
+
+        if (!confirm("Are you sure you want to convert this lead to client?")) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                `/clients/convert/${leadId}`,
+                {
+                    method: "POST",
+                    headers: getAuthHeaders()
+                }
+            );
+
+            const data = await response.json();
+
+            if (response.ok) {
+
+                alert(data.message);
+
+                // Reload table
+                loadLeads();
+
+            } else {
+
+                alert(data.detail || "Conversion failed");
+
+            }
+
+        } catch (error) {
+
+            console.error(error);
+            alert("Error converting lead");
+
+        }
 
     }
 
 
 
-    // =============================
-    // Page Load
-    // =============================
-
-    $(document).ready(function () {
-
-        loadLeads();
-
-    });
 
 </script>
-
 {% endblock %}

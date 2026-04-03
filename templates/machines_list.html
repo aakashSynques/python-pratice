@@ -1,89 +1,235 @@
 {% extends "base.html" %}
-
 {% block title %}Machines - Tea Vending ERP{% endblock %}
-
 {% block page_title %}Machine Management{% endblock %}
-
 {% block content %}
-<div class="row mb-3">
-    <div class="col-md-6">
-        <h4>All Machines</h4>
-    </div>
-    <div class="col-md-6 text-end">
-        <a href="/machines/add" class="btn btn-primary">
-            <i class="fas fa-plus me-1"></i>Add Machine
-        </a>
-    </div>
-</div>
-
 <div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col-md-6">
+                <h5 class="mb-0">Machine List</h5>
+            </div>
+            <div class="col-md-6 text-end">
+                <button class="btn bg-color btn-sm btn-success" data-bs-toggle="modal"
+                    data-bs-target="#addMachineModal">
+                    <i class="fas fa-plus me-1"></i>
+                    Add Machine
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="card-body">
         <div class="table-responsive">
-            <table class="table table-striped table-hover" id="machinesTable">
-                <thead class="table-dark">
+            <table class="table table-hover table-bordered align-middle" id="machinesTable" style="width:100%">
+                <thead class="table-secondary">
                     <tr>
-                        <th>ID</th>
+                        <th>Sno</th>
                         <th>Machine Name</th>
+                        <th>Machine Code</th>
                         <th>Machine Type</th>
-                        <th>Model</th>
-                        <th>Serial Number</th>
-                        <th>Status</th>
-                        <th>Location</th>
+                        <th>Brand</th>
+                        <th>Capacity</th>
+                        <th width="30%">Description</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="machinesTableBody">
-                    <!-- Data will be loaded via JavaScript -->
                 </tbody>
             </table>
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="addMachineModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Machine</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                <form id="addMachineForm">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label for="name" class="form-label">Machine Name *</label>
+                            <input type="text" class="form-control" id="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="machine_code" class="form-label">Machine Code *</label>
+                            <input type="text" class="form-control" id="machine_code" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="type" class="form-label">Machine type *</label>
+                            <!-- <input type="text" class="form-control" id="type" required> -->
+                            <select class="form-select" id="type" required>
+                                <option value="" disabled selected>Select machine type</option>
+                                <option value="Tea Vending Machine">Tea Vending Machine</option>
+                                <option value="Coffee Vending Machine">Coffee Vending Machine</option>
+                                <option value="Tea + Coffee Vending Machine">Tea + Coffee Vending Machine</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="brand_name" class="form-label">Brand *</label>
+                            <input type="text" class="form-control" id="brand_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="capicity" class="form-label">Capacity *</label>
+                            <input type="text" class="form-control" id="capicity" required>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea rows="2" type="text" class="form-control" id="description" required>
+                            </textarea>
+                        </div>
+                        <div class="col-md-12 mb-3 text-end">
+                            <button type="submit" class="btn bg-color btn-success">
+                                <i class="fas fa-save me-1"></i>
+                                Save Machine
+                            </button>
+                        </div>
+                        <div id="leadMessage" class="mb-2 fw-semibold small"></div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Machine Modal -->
+<div class="modal fade" id="editMachineModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Machine</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editMachineForm">
+                    <input type="hidden" id="edit_machine_id">
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">
+                                Machine Name *
+                            </label>
+                            <input type="text" class="form-control" id="edit_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                Machine Code *
+                            </label>
+                            <input type="text" class="form-control" id="edit_machine_code" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                Machine Type *
+                            </label>
+                            <select class="form-select" id="edit_type" required>
+                                <option value="">
+                                    Select machine type
+                                </option>
+                                <option value="Tea Vending Machine">
+                                    Tea Vending Machine
+                                </option>
+                                <option value="Coffee Vending Machine">
+                                    Coffee Vending Machine
+                                </option>
+                                <option value="Tea + Coffee Vending Machine">
+                                    Tea + Coffee Vending Machine
+                                </option>
+                                <option value="Other">
+                                    Other
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                Brand *
+                            </label>
+                            <input type="text" class="form-control" id="edit_brand_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">
+                                Capacity *
+                            </label>
+                            <input type="text" class="form-control" id="edit_capicity" required>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">
+                                Description *
+                            </label>
+                            <textarea rows="2" class="form-control" id="edit_description" required>
+                            </textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-success">
+                                Update Machine
+                            </button>
+                        </div>
+                        <div id="editLeadMessage" class="mt-2 small fw-semibold">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
 {% endblock %}
+
 
 {% block scripts %}
 <script>
-    let machinesData = [];
-
-    async function loadMachines() {
+    let machineData = [];
+    async function loadMachine() {
         try {
             const response = await fetch('/machines/', {
                 headers: getAuthHeaders()
             });
-
             if (response.ok) {
-                machinesData = await response.json();
-                renderMachinesTable();
+                machineData = await response.json();
+                console.log('Loaded machines:', machineData);
+                renderMachineTableData();
             } else {
                 handleApiError({ status: response.status, message: 'Failed to load machines' });
             }
         } catch (error) {
-            console.error('Error loading machines:', error);
             alert('Failed to load machines');
         }
     }
 
-    function renderMachinesTable() {
+    function renderMachineTableData(data) {
+        if ($.fn.DataTable.isDataTable('#machinesTable')) {
+            $('#machinesTable')
+                .DataTable()
+                .destroy();
+        }
         const tbody = document.getElementById('machinesTableBody');
         tbody.innerHTML = '';
 
-        machinesData.forEach(machine => {
+        machineData.forEach(machine => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${machine.id}</td>
-                <td>${machine.machine_name}</td>
-                <td>${machine.machine_type}</td>
-                <td>${machine.model || '-'}</td>
-                <td>${machine.serial_number || '-'}</td>
+                <td>${machineData.indexOf(machine) + 1}</td>
+                <td>${machine.name}</td>
+                    <td>${machine.machine_code || '-'}</td>    
+                <td>${machine.type}</td>
+                <td>${machine.brand_name || '-'}</td>
+                        
+                <td>${machine.capicity || '-'}</td>
                 <td>
-                    <span class="badge bg-${getStatusColor(machine.status)}">${machine.status}</span>
+                ${machine.description || '-'}
                 </td>
-                <td>${machine.location || '-'}</td>
                 <td>
                     <div class="btn-group" role="group">
-                        <button class="btn btn-sm btn-outline-primary" onclick="editMachine(${machine.id})">
-                            <i class="fas fa-edit"></i>
-                        </button>
+                    <button class="btn btn-sm btn-outline-primary"
+        onclick="editMachine(${machine.id})">
+    <i class="fas fa-edit"></i>
+</button>
                         <button class="btn btn-sm btn-outline-danger" onclick="deleteMachine(${machine.id})">
                             <i class="fas fa-trash"></i>
                         </button>
@@ -92,47 +238,397 @@
             `;
             tbody.appendChild(row);
         });
+        initializeDataTable();
     }
 
-    function getStatusColor(status) {
-        switch (status) {
-            case 'active': return 'success';
-            case 'inactive': return 'secondary';
-            case 'maintenance': return 'warning';
-            case 'out_of_order': return 'danger';
-            default: return 'secondary';
-        }
-    }
-
-    function editMachine(id) {
+    function editClient(id) {
         // For now, just alert. In a real app, you'd navigate to edit page
-        alert(`Edit machine ${id} - Feature coming soon`);
+        alert(`Edit client ${id} - Feature coming soon`);
     }
 
-    async function deleteMachine(id) {
-        if (confirm('Are you sure you want to delete this machine?')) {
-            try {
-                const response = await fetch(`/machines/${id}`, {
-                    method: 'DELETE',
-                    headers: getAuthHeaders()
-                });
+    function viewDetails(id) {
+        // For now, just alert. In a real app, you'd show a modal or navigate to detail page
+        alert(`View details for client ${id} - Feature coming soon`);
+    }
 
-                if (response.ok) {
-                    alert('Machine deleted successfully');
-                    loadMachines();
-                } else {
-                    handleApiError({ status: response.status, message: 'Failed to delete machine' });
+    // Load clients when page loads
+    window.onload = function () {
+        loadMachine();
+    };
+
+    // Initialize DataTable
+    function initializeDataTable() {
+        $('#machinesTable').DataTable({
+            responsive: true,
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            order: [[0, "asc"]],
+            dom:
+                "<'row mb-1'" +
+                "<'col-md-6 d-flex align-items-center'B>" +
+                "<'col-md-6 d-flex justify-content-end'f>" +
+                ">" +
+                "<'row'<'col-12'tr>>" +
+                "<'row mt-2'" +
+                "<'col-md-6'i>" +
+                "<'col-md-6'p>" +
+                ">",
+            buttons: [
+                {
+                    extend: 'copy',
+                    className: 'btn btn-sm btn-secondary'
+                },
+                {
+                    extend: 'csv',
+                    className: 'btn btn-sm btn-secondary'
+                },
+                {
+                    extend: 'excel',
+                    className: 'btn btn-sm btn-secondary'
+                },
+                {
+                    extend: 'pdf',
+                    className: 'btn btn-sm btn-secondary'
+                },
+                {
+                    extend: 'print',
+                    className: 'btn btn-sm btn-secondary'
                 }
-            } catch (error) {
-                console.error('Error deleting machine:', error);
-                alert('Failed to delete machine');
+            ],
+            columnDefs: [
+                {
+                    targets: -1,
+                    orderable: false
+                }
+            ]
+        });
+    }
+    // Page Load
+    $(document).ready(function () {
+        loadMachine();
+    });
+
+</script>
+
+<script>
+    function showLeadMessage(type, message, elementId = "leadMessage") {
+        const msgDiv = document.getElementById(elementId);
+        if (!msgDiv) return;
+        msgDiv.innerText = message;
+        msgDiv.classList.remove(
+            "text-success",
+            "text-danger",
+            "text-warning"
+        );
+        if (type === "success") {
+            msgDiv.classList.add("text-success");
+        }
+        else if (type === "danger") {
+            msgDiv.classList.add("text-danger");
+        }
+        else {
+            msgDiv.classList.add("text-warning");
+        }
+        // Auto Hide Message
+        setTimeout(() => {
+            msgDiv.innerText = "";
+            msgDiv.classList.remove(
+                "text-success",
+                "text-danger",
+                "text-warning"
+            );
+        }, 3000);
+    }
+    // Add Machine
+    async function addMachine(event) {
+        event.preventDefault();
+        const leadData = {
+            name: document.getElementById('name').value.trim(),
+            machine_code: document.getElementById('machine_code').value.trim(),
+            type: document.getElementById('type').value.trim(),
+            capicity: document.getElementById('capicity').value.trim(),
+            description: document.getElementById('description').value.trim(),
+            brand_name: document.getElementById('brand_name').value.trim()
+        };
+        if (
+            !leadData.name ||
+            !leadData.machine_code ||
+            !leadData.type ||
+            !leadData.capicity ||
+            !leadData.description ||
+            !leadData.brand_name
+        ) {
+            showLeadMessage(
+                "warning",
+                "Please fill in all required fields"
+            );
+            return;
+        }
+        try {
+            const response = await fetch(
+                '/machines/add-machines',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(typeof getAuthHeaders === "function"
+                            ? getAuthHeaders()
+                            : {})
+                    },
+                    body: JSON.stringify(leadData)
+                }
+            );
+            const result = await response.json();
+            if (
+                response.ok &&
+                (result.status === "success" ||
+                    result.success === true)
+            ) {
+                showLeadMessage(
+                    "success",
+                    result.message ||
+                    "Machine added successfully"
+                );
+                document
+                    .getElementById("addMachineForm")
+                    .reset();
+                // if (typeof loadMachines === "function") {
+                //     loadMachine();
+                // }
+                loadMachine();
+                setTimeout(() => {
+                    const modal =
+                        bootstrap.Modal.getInstance(
+                            document.getElementById(
+                                'addMachineModal'
+                            )
+                        );
+                    if (modal) {
+                        modal.hide();
+                    }
+                }, 1500);
+            }
+            else {
+                showLeadMessage(
+                    "danger",
+                    result.message ||
+                    result.detail ||
+                    "Failed to add machine"
+                );
             }
         }
+        catch (error) {
+            showLeadMessage(
+                "danger",
+                "Server Error: " + error.message
+            );
+        }
+    }
+    document.addEventListener("DOMContentLoaded", function () {
+        const form =
+            document.getElementById('addMachineForm');
+        if (form) {
+            form.addEventListener(
+                'submit',
+                addMachine
+            );
+
+        }
+    });
+</script>
+
+
+<script>
+  function editMachine(id) {
+
+    const machine =
+        machineData.find(
+            m => m.id === id
+        );
+
+    if (!machine) {
+        alert("Machine not found");
+        return;
     }
 
-    // Load machines when page loads
-    window.onload = function() {
-        loadMachines();
-    };
+    document.getElementById(
+        'edit_machine_id'
+    ).value = machine.id;
+
+    document.getElementById(
+        'edit_name'
+    ).value = machine.name;
+
+    document.getElementById(
+        'edit_machine_code'
+    ).value = machine.machine_code;
+
+    document.getElementById(
+        'edit_type'
+    ).value = machine.type;
+
+    document.getElementById(
+        'edit_brand_name'
+    ).value = machine.brand_name;
+
+    document.getElementById(
+        'edit_capicity'
+    ).value = machine.capicity;
+
+    document.getElementById(
+        'edit_description'
+    ).value = machine.description;
+
+
+    const modal =
+        new bootstrap.Modal(
+            document.getElementById(
+                'editMachineModal'
+            )
+        );
+
+    modal.show();
+
+}
+
+
+
+    async function updateMachine(event) {
+
+        event.preventDefault();
+
+        const machine_id =
+            document.getElementById(
+                'edit_machine_id'
+            ).value;
+
+        const updateData = {
+
+            name:
+                document.getElementById(
+                    'edit_name'
+                ).value.trim(),
+
+            machine_code:
+                document.getElementById(
+                    'edit_machine_code'
+                ).value.trim(),
+
+            type:
+                document.getElementById(
+                    'edit_type'
+                ).value.trim(),
+
+            capicity:
+                document.getElementById(
+                    'edit_capicity'
+                ).value.trim(),
+
+            description:
+                document.getElementById(
+                    'edit_description'
+                ).value.trim(),
+
+            brand_name:
+                document.getElementById(
+                    'edit_brand_name'
+                ).value.trim()
+
+        };
+
+
+        try {
+
+            const response = await fetch(
+
+                `/machines/${machine_id}`,
+
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type": "application/json",
+                        ...getAuthHeaders()
+                    },
+
+                    body:
+                        JSON.stringify(updateData)
+
+                }
+
+            );
+
+
+            const result =
+                await response.json();
+
+
+            if (
+                response.ok &&
+                result.status === "success"
+            ) {
+
+                showLeadMessage(
+                    "success",
+                    result.message,
+                    "editLeadMessage"
+                );
+
+
+                loadMachine();
+
+
+                setTimeout(() => {
+
+                    const modal =
+                        bootstrap.Modal.getInstance(
+                            document.getElementById(
+                                'editMachineModal'
+                            )
+                        );
+
+                    if (modal) modal.hide();
+
+                }, 1500);
+
+            }
+
+            else {
+
+                showLeadMessage(
+                    "danger",
+                    result.message ||
+                    "Update failed",
+                    "editLeadMessage"
+                );
+
+            }
+
+        }
+
+        catch (error) {
+
+            showLeadMessage(
+                "danger",
+                "Server Error: " +
+                error.message,
+                "editLeadMessage"
+            );
+
+        }
+
+    }
+
+
+    document
+        .getElementById(
+            "editMachineForm"
+        )
+        .addEventListener(
+            "submit",
+            updateMachine
+        );
 </script>
+
+
 {% endblock %}

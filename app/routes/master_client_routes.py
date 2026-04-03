@@ -6,6 +6,7 @@ from app.database.db import get_db
 from app.models.master_users import MasterUser
 from app.models.master_leads import MasterLead
 from app.models.master_client_model import MasterClient
+from app.models.lead_demo_schedule import LeadDemoSchedule
 
 from app.schemas.client_schema import (
     ClientResponse,
@@ -22,7 +23,6 @@ router = APIRouter(
 # =====================================
 # Convert Lead → Client
 # =====================================
-
 @router.post("/convert/{lead_id}")
 def convert_lead_to_client(
     lead_id: int,
@@ -56,24 +56,31 @@ def convert_lead_to_client(
 
     # Create Client from Lead
     new_client = MasterClient(
-
         lead_id=lead.id,
-
         name=lead.name,
         email=lead.email,
-
-        # IMPORTANT mapping
         mobile=lead.phone,
-
         address=lead.address,
-
-        status="active"
+        client_status=0
     )
 
     db.add(new_client)
 
     # Update Lead Status
-    lead.status = "converted"
+    lead.lead_status = 4
+
+    # ================================
+    # Update LeadDemoSchedule Status
+    # ================================
+
+    demo_schedule = db.query(
+        LeadDemoSchedule
+    ).filter(
+        LeadDemoSchedule.lead_id == lead_id
+    ).all()
+
+    for demo in demo_schedule:
+        demo.lead_convert_status = 1
 
     db.commit()
     db.refresh(new_client)
@@ -82,7 +89,6 @@ def convert_lead_to_client(
         "message": "Lead converted to Client successfully",
         "client_id": new_client.id
     }
-
 
 # =====================================
 # GET All Clients
