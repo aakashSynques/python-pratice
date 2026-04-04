@@ -1,9 +1,6 @@
 {% extends "base.html" %}
-
 {% block title %}Clients - Tea Vending ERP{% endblock %}
-
 {% block page_title %}Client Management{% endblock %}
-
 {% block content %}
 <div class="card">
     <div class="card-header">
@@ -13,7 +10,6 @@
             </div>
         </div>
     </div>
-
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover table-bordered align-middle" id="clientsTable" style="width:100%">
@@ -33,37 +29,75 @@
                 </tbody>
             </table>
         </div>
-
-
-
+    </div>
+</div>
+<!-- Work Order Modal -->
+<div class="modal fade" id="workOrderModal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Create Work Order
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="workOrderForm">
+                    <input type="hidden" id="wo_client_id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label>Order Date</label>
+                            <input type="date" id="order_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Expected Installation</label>
+                            <input type="date" id="installation_date" class="form-control">
+                        </div>
+                        <div class="col-md-12 my-3">
+                            <label>Upload Document (PDF)</label>
+                            <input type="file" id="wo_document" class="form-control" accept=".pdf">
+                            <small class="text-muted">
+                                Only PDF allowed (Max 5MB)
+                            </small>
+                        </div>
+                        <hr>
+                        <h6>Select Machines</h6>
+                        <div id="machineList"> </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="createWorkOrder()">
+                    Save Work Order
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
-
-
-
 {% block scripts %}
 <script>
     let clientsData = [];
-
+    let machinesData = [];
     async function loadClients() {
         try {
             const response = await fetch('/clients/', {
                 headers: getAuthHeaders()
             });
-
             if (response.ok) {
                 clientsData = await response.json();
                 renderClientsTable();
-            } else {
-                handleApiError({ status: response.status, message: 'Failed to load clients' });
             }
-        } catch (error) {
-            alert('Failed to load clients');
+            else {
+                alert("Failed to load clients");
+            }
+        }
+        catch (error) {
+            alert("Error loading clients");
         }
     }
-
-    function renderClientsTable(data) {
+    // Render Clients Table
+    function renderClientsTable() {
         if ($.fn.DataTable.isDataTable('#clientsTable')) {
             $('#clientsTable')
                 .DataTable()
@@ -71,106 +105,184 @@
         }
         const tbody = document.getElementById('clientsTableBody');
         tbody.innerHTML = '';
-
-        clientsData.forEach(client => {
+        clientsData.forEach((client, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${clientsData.indexOf(client) + 1}</td>
-                <td>${client.name}</td>
-                <td>${client.email}</td>
-                <td>${client.mobile}</td>
- 
-                <td>${client.address || '-'}</td>
-                <th>
-                    <button 
-                        class="btn btn-sm btn-info " 
-                    >
-                      Create Order
+            <td>${index + 1}</td>
+            <td>${client.name}</td>
+            <td>${client.email}</td>
+            <td>${client.mobile}</td>
+            <td>${client.address || '-'}</td>
+            <td>
+                <button class="btn btn-sm btn-info text-white btn-size" onclick="openWorkOrderModal(${client.id})" >
+                   + Create Order
+                </button>
+            </td>
+            <td>
+                ${new Date(
+                client.created_at
+            ).toLocaleString()}
+            </td>
+            <td>
+                <div class="btn-group">
+                    <button  class="btn btn-sm btn-outline-info" onclick="viewDetails(${client.id})" >
+                        <i class="fas fa-eye"></i>
                     </button>
-                    
-                    </th>
-                                <td>${new Date(client.created_at).toLocaleString()}</td>
-
-                <td>
-                    <div class="btn-group" role="group">
-                  
-                        <button class="btn btn-sm btn-outline-info" onclick="viewDetails(${client.id})">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    </div>
-                </td>
-            `;
+                </div>
+            </td>
+        `;
             tbody.appendChild(row);
         });
         initializeDataTable();
     }
+    // Load Machines
+    async function loadMachines() {
+        try {
+            const response = await fetch('/machines/',
+                {
+                    headers: getAuthHeaders()
+                }
+            );
+            if (response.ok) {
+                machinesData = await response.json();
+                renderMachineList();
+            }
+        }
+        catch (error) {
+            alert("Error loading machines");
+        }
+    }
+    // Render Machine List
+    function renderMachineList() {
+        const container = document.getElementById("machineList");
+        container.innerHTML = "";
+        machinesData.forEach(machine => {
+            container.innerHTML += `
+                <div class="row mb-2">
+                    <div class="col-lg-6 col-md-8 col-sm-8 col-8">
+                        <input type="checkbox" value="${machine.id}" class="machine-checkbox">
+                    ${machine.name} - (${machine.machine_code})
+                    </div>
+                    <div class="col-lg-6 col-md-4 col-sm-4 col-4">
+                        <input type="number" min="1" value="1" class="form-control form-control-sm machine-qty">
+                    </div>
+                </div>
+        `;
+        });
+    }
+    // Open Modal
+    function openWorkOrderModal(clientId) {
+        document.getElementById(
+            "wo_client_id"
+        ).value = clientId;
+        loadMachines();
+        const modal = new bootstrap.Modal(
+            document.getElementById(
+                "workOrderModal"
+            )
+        );
+        modal.show();
+    }
+    // Create Work Order
+    async function createWorkOrder() {
+        const client_id =
+            document.getElementById("wo_client_id").value;
+        const order_date =
+            document.getElementById("order_date").value;
+        const expected_installation_date =
+            document.getElementById("installation_date").value;
+        const file =
+            document.getElementById("wo_document").files[0];
+        const machines = [];
+        const checkboxes =
+            document.querySelectorAll(".machine-checkbox");
+        const qtyInputs =
+            document.querySelectorAll(".machine-qty");
+        checkboxes.forEach((checkbox, index) => {
+            if (checkbox.checked) {
+                machines.push({
+                    machine_id:
+                        parseInt(checkbox.value),
+                    quantity:
+                        parseInt(qtyInputs[index].value)
+                });
+            }
+        });
+        if (machines.length === 0) {
+            alert("Select at least one machine");
+            return;
+        }
+        const payload = {
+            client_id: parseInt(client_id),
+            order_date: order_date,
+            expected_installation_date:
+                expected_installation_date,
+            machines: machines
+        };
 
-    function editClient(id) {
-        // For now, just alert. In a real app, you'd navigate to edit page
-        alert(`Edit client ${id} - Feature coming soon`);
+        const formData = new FormData();
+        formData.append(
+            "work_order",
+            JSON.stringify(payload)
+        );
+        if (file) {
+            formData.append(
+                "document",
+                file
+            );
+        }
+        // Fix Headers
+        const headers = getAuthHeaders();
+        delete headers["Content-Type"];
+        try {
+            const response =
+                await fetch(
+                    "/work-orders/create",
+                    {
+                        method: "POST",
+                        headers: headers,
+                        body: formData
+                    }
+                );
+
+            if (response.ok) {
+                alert("Work Order Created Successfully");
+                // Close Modal set time out to allow alert to show
+                setTimeout(() => {
+                    const modalEl =
+                        document.getElementById(
+                            "workOrderModal"
+                        );
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    modal.hide();
+                }, 1000);
+                location.reload();
+            }
+            else {
+                const err = await response.json();
+                alert(
+                    JSON.stringify(err.detail)
+                );
+            }
+        }
+        catch (error) {
+            alert("Error creating work order");
+        }
     }
 
-    function viewDetails(id) {
-        // For now, just alert. In a real app, you'd show a modal or navigate to detail page
-        alert(`View details for client ${id} - Feature coming soon`);
-    }
-
-    // Load clients when page loads
-    window.onload = function () {
-        loadClients();
-    };
-
-    // Initialize DataTable
+    // View Details
+    function viewDetails(id) { alert(`View client ${id}`); }
+    // Initialize DataTabl
     function initializeDataTable() {
         $('#clientsTable').DataTable({
             responsive: true,
             pageLength: 10,
-            lengthMenu: [10, 25, 50, 100],
-            order: [[0, "asc"]],
-            dom:
-                "<'row mb-1'" +
-                "<'col-md-6 d-flex align-items-center'B>" +
-                "<'col-md-6 d-flex justify-content-end'f>" +
-                ">" +
-                "<'row'<'col-12'tr>>" +
-                "<'row mt-2'" +
-                "<'col-md-6'i>" +
-                "<'col-md-6'p>" +
-                ">",
-            buttons: [
-                {
-                    extend: 'copy',
-                    className: 'btn btn-sm btn-secondary'
-                },
-                {
-                    extend: 'csv',
-                    className: 'btn btn-sm btn-secondary'
-                },
-                {
-                    extend: 'excel',
-                    className: 'btn btn-sm btn-secondary'
-                },
-                {
-                    extend: 'pdf',
-                    className: 'btn btn-sm btn-secondary'
-                },
-                {
-                    extend: 'print',
-                    className: 'btn btn-sm btn-secondary'
-                }
-            ],
-            columnDefs: [
-                {
-                    targets: -1,
-                    orderable: false
-                }
-            ]
+            order: [[0, "asc"]]
         });
     }
     // Page Load
     $(document).ready(function () {
         loadClients();
     });
-
 </script>
 {% endblock %}

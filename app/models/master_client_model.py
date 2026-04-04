@@ -104,9 +104,3 @@ class MasterClient(Base):
         default=datetime.utcnow,
         onupdate=datetime.utcnow
     )
-
-    # ✅ YE CLASS KE ANDAR HONA CHAHIYE
-    work_orders = relationship(
-        "WorkOrders",
-        back_populates="client"
-    )

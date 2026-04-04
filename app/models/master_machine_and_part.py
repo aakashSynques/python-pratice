@@ -67,11 +67,7 @@ class MasterMachines(Base):
         back_populates="machine"
     )
 
-    # ✅ ADD THIS (INSIDE CLASS)
-    work_orders = relationship(
-        "WorkOrders",
-        back_populates="machine"
-    )
+
 
 
 # Machine Parts Table

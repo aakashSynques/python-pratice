@@ -1,247 +1,225 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session, joinedload
-from typing import List
-
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from sqlalchemy.orm import Session
+from datetime import datetime
+import os
+import json
 from app.database.db import get_db
-
-from app.models.work_order_model import WorkOrders
-from app.models.master_client_model import MasterClient
-from app.models.master_machine_and_part import MasterMachines
-
+from app.models.work_order_model import (
+    WorkOrder,
+    WorkOrderMachine
+)
 from app.schemas.work_orders_schemas import (
     WorkOrderCreate,
     WorkOrderUpdate,
     WorkOrderResponse
 )
-
 router = APIRouter(
     prefix="/work-orders",
     tags=["Work Orders"]
 )
 
+UPLOAD_DIR = "uploads/work_orders"
+
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
+
 
 # Generate Work Order Number
 def generate_work_order_no(db: Session):
+    year = datetime.now().year
+    last_order = db.query(WorkOrder)\
+        .order_by(WorkOrder.id.desc())\
+        .first()
+    if last_order:
+        next_id = last_order.id + 1
+    else:
+        next_id = 1
+    return f"WO-{year}-{next_id:03d}"
+# CREATE WORK ORDER
 
-    last_order = db.query(WorkOrders).order_by(
-        WorkOrders.id.desc()
-    ).first()
+# @router.post("/create", response_model=WorkOrderResponse)
+# def create_work_order(
+#     work_order: WorkOrderCreate,
+#     db: Session = Depends(get_db)
+# ):
+#     work_order_no = generate_work_order_no(db)
+#     db_work_order = WorkOrder(
+#         work_order_no=work_order_no,
+#         client_id=work_order.client_id,
+#         order_date=work_order.order_date,
+#         expected_installation_date=work_order.expected_installation_date,
+#         remarks=work_order.remarks,
+#         created_by=work_order.created_by
+#     )
+#     db.add(db_work_order)
+#     db.commit()
+#     db.refresh(db_work_order)
+#     # Add Machines
+#     for machine in work_order.machines:
+#         db_machine = WorkOrderMachine(
+#             work_order_id=db_work_order.id,
+#             machine_id=machine.machine_id,
+#             quantity=machine.quantity,
+#             remarks=machine.remarks
+#         )
+#         db.add(db_machine)
+#     db.commit()
+#     db.refresh(db_work_order)
+#     return db_work_order
 
-    if not last_order:
-        return "WO-001"
-
-    new_number = last_order.id + 1
-
-    return f"WO-{new_number:03d}"
 
 
-# CREATE Work Order
-@router.post("/", response_model=WorkOrderResponse)
+@router.post("/create", response_model=WorkOrderResponse)
 def create_work_order(
-    work_order: WorkOrderCreate,
+
+    work_order: str = Form(...),   # JSON string
+
+    document: UploadFile = File(None),
+
     db: Session = Depends(get_db)
+
 ):
 
-    # Check Client
-    client = db.query(MasterClient).filter(
-        MasterClient.id == work_order.client_id
-    ).first()
-
-    if not client:
-        raise HTTPException(
-            status_code=404,
-            detail="Client not found"
-        )
-
-    # Check Machine
-    machine = db.query(MasterMachines).filter(
-        MasterMachines.id == work_order.machine_id
-    ).first()
-
-    if not machine:
-        raise HTTPException(
-            status_code=404,
-            detail="Machine not found"
-        )
-
-    # Generate Number
-    work_order_no = generate_work_order_no(db)
-
-    new_work_order = WorkOrders(
-        work_order_no=work_order_no,
-        client_id=work_order.client_id,
-        machine_id=work_order.machine_id,
-        quantity=work_order.quantity,
-        order_date=work_order.order_date,
-        status=work_order.status
+    # Convert JSON → Schema
+    work_order_data = WorkOrderCreate(
+        **json.loads(work_order)
     )
 
-    db.add(new_work_order)
+    work_order_no = generate_work_order_no(db)
+
+    file_path = None
+
+    # Save File
+    if document:
+
+        file_name = f"{work_order_no}_{document.filename}"
+
+        file_location = os.path.join(
+            UPLOAD_DIR,
+            file_name
+        )
+
+        with open(file_location, "wb") as buffer:
+            buffer.write(document.file.read())
+
+        file_path = file_location
+
+    # Create Work Order
+
+    db_work_order = WorkOrder(
+
+        work_order_no=work_order_no,
+
+        client_id=work_order_data.client_id,
+
+        order_date=work_order_data.order_date,
+
+        expected_installation_date=
+            work_order_data.expected_installation_date,
+
+        remarks=work_order_data.remarks,
+
+        created_by=work_order_data.created_by,
+
+        document_path=file_path
+    )
+
+    db.add(db_work_order)
+
     db.commit()
-    db.refresh(new_work_order)
 
-    return new_work_order
+    db.refresh(db_work_order)
+
+    # Add Machines
+
+    for machine in work_order_data.machines:
+
+        db_machine = WorkOrderMachine(
+
+            work_order_id=db_work_order.id,
+
+            machine_id=machine.machine_id,
+
+            quantity=machine.quantity,
+
+            remarks=machine.remarks
+        )
+
+        db.add(db_machine)
+
+    db.commit()
+
+    db.refresh(db_work_order)
+
+    return db_work_order
 
 
-# GET All
-@router.get("/", response_model=List[WorkOrderResponse])
-def get_all_work_orders(db: Session = Depends(get_db)):
-
-    work_orders = db.query(
-        WorkOrders
-    ).options(
-        joinedload(WorkOrders.client),
-        joinedload(WorkOrders.machine)
-    ).all()
-
-    return work_orders
 
 
-# GET By ID
+# GET ALL WORK ORDERS
+@router.get("/", response_model=list[WorkOrderResponse])
+def get_work_orders(
+    db: Session = Depends(get_db)
+):
+    orders = db.query(WorkOrder).all()
+    return orders
+# GET SINGLE WORK ORDER
 @router.get("/{work_order_id}", response_model=WorkOrderResponse)
-def get_work_order_by_id(
+def get_work_order(
     work_order_id: int,
     db: Session = Depends(get_db)
 ):
-
-    work_order = db.query(WorkOrders).filter(
-        WorkOrders.id == work_order_id
+    order = db.query(WorkOrder).filter(
+        WorkOrder.id == work_order_id
     ).first()
-
-    if not work_order:
+    if not order:
         raise HTTPException(
             status_code=404,
             detail="Work Order not found"
         )
+    return order
 
-    return work_order
-
-
-# UPDATE
-# @router.put("/{work_order_id}", response_model=WorkOrderResponse)
-# def update_work_order(
-#     work_order_id: int,
-#     work_order: WorkOrderUpdate,
-#     db: Session = Depends(get_db)
-# ):
-
-#     existing = db.query(WorkOrders).filter(
-#         WorkOrders.id == work_order_id
-#     ).first()
-
-#     if not existing:
-#         raise HTTPException(
-#             status_code=404,
-#             detail="Work Order not found"
-#         )
-
-#     # Validate Client
-#     if work_order.client_id:
-#         client = db.query(MasterClient).filter(
-#             MasterClient.id == work_order.client_id
-#         ).first()
-
-#         if not client:
-#             raise HTTPException(
-#                 status_code=404,
-#                 detail="Client not found"
-#             )
-
-#     # Validate Machine
-#     if work_order.machine_id:
-#         machine = db.query(MasterMachines).filter(
-#             MasterMachines.id == work_order.machine_id
-#         ).first()
-
-#         if not machine:
-#             raise HTTPException(
-#                 status_code=404,
-#                 detail="Machine not found"
-#             )
-
-#     # Update fields
-#     for key, value in work_order.dict(
-#         exclude_unset=True
-#     ).items():
-#         setattr(existing, key, value)
-
-#     db.commit()
-#     db.refresh(existing)
-
-#     return existing
-
-@router.put("/{work_order_id}", response_model=WorkOrderResponse)
+# UPDATE WORK ORDER
+@router.put("/{work_order_id}")
 def update_work_order(
     work_order_id: int,
     work_order: WorkOrderUpdate,
     db: Session = Depends(get_db)
 ):
-
-    existing = db.query(WorkOrders).filter(
-        WorkOrders.id == work_order_id
+    order = db.query(WorkOrder).filter(
+        WorkOrder.id == work_order_id
     ).first()
-
-    if not existing:
+    if not order:
         raise HTTPException(
             status_code=404,
             detail="Work Order not found"
         )
-
-    # Validate Client
-    if work_order.client_id:
-        client = db.query(MasterClient).filter(
-            MasterClient.id == work_order.client_id
-        ).first()
-
-        if not client:
-            raise HTTPException(
-                status_code=404,
-                detail="Client not found"
-            )
-
-    # Validate Machine
-    if work_order.machine_id:
-        machine = db.query(MasterMachines).filter(
-            MasterMachines.id == work_order.machine_id
-        ).first()
-
-        if not machine:
-            raise HTTPException(
-                status_code=404,
-                detail="Machine not found"
-            )
-
-    # Update fields
     for key, value in work_order.dict(
         exclude_unset=True
     ).items():
-        setattr(existing, key, value)
-
+        setattr(order, key, value)
     db.commit()
-    db.refresh(existing)
+    return {
+        "message": "Work Order updated successfully"
+    }
 
-    return existing
 
-# DELETE
+# DELETE WORK ORDER
 @router.delete("/{work_order_id}")
 def delete_work_order(
     work_order_id: int,
     db: Session = Depends(get_db)
 ):
-
-    work_order = db.query(WorkOrders).filter(
-        WorkOrders.id == work_order_id
+    order = db.query(WorkOrder).filter(
+        WorkOrder.id == work_order_id
     ).first()
-
-    if not work_order:
+    if not order:
         raise HTTPException(
             status_code=404,
             detail="Work Order not found"
         )
-
-    db.delete(work_order)
+    db.delete(order)
     db.commit()
-
     return {
         "message": "Work Order deleted successfully"
     }
